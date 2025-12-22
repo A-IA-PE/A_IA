@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EDITS HOTS AI | Portafolio Interactivo</title>
+    <title>EDITS HOTS AI | Portafolio Experto</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -13,7 +14,7 @@
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: #050505;
             color: #ffffff;
-            scroll-behavior: smooth;
+            overflow-x: hidden;
         }
 
         .glass-card {
@@ -22,193 +23,161 @@
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        .gradient-border {
-            position: relative;
-            border-radius: 1rem;
-            background: linear-gradient(90deg, #ff0080, #7928ca);
-            padding: 1px;
-        }
-
-        .inner-content {
-            background: #0a0a0a;
-            border-radius: 1rem;
-            height: 100%;
-            width: 100%;
-        }
-
         .portfolio-card {
-            background: rgba(255, 255, 255, 0.03);
+            background: #0a0a0a;
             border-radius: 1.5rem;
             overflow: hidden;
             border: 1px solid rgba(255, 255, 255, 0.05);
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         .portfolio-card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(255, 0, 128, 0.3);
+            transform: translateY(-8px);
+            border-color: #ff0080;
+            box-shadow: 0 10px 30px -10px rgba(255, 0, 128, 0.3);
         }
 
-        .media-container {
+        .media-wrapper {
             position: relative;
             width: 100%;
             aspect-ratio: 9/16;
             background: #000;
+            overflow: hidden;
         }
 
-        .media-container iframe, .media-container img, .media-container video {
+        /* La imagen de portada que desaparece */
+        .thumbnail-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 20;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            pointer-events: none;
+        }
+
+        .portfolio-card:hover .thumbnail-overlay {
+            opacity: 0;
+            transform: scale(1.1);
+        }
+
+        .media-content {
             width: 100%;
             height: 100%;
-            border: none;
             object-fit: cover;
         }
 
-        .order-button {
+        .order-btn {
             background: linear-gradient(90deg, #ff0080, #7928ca);
-            color: white;
-            font-weight: 800;
-            text-align: center;
-            padding: 1rem;
-            width: 100%;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.85rem;
-            transition: opacity 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
+            transition: all 0.3s ease;
         }
 
-        .order-button:hover {
-            opacity: 0.9;
+        .order-btn:hover {
+            filter: brightness(1.2);
+            letter-spacing: 2px;
         }
 
-        .payment-badge {
+        .badge {
             background: rgba(255, 255, 255, 0.05);
-            padding: 0.5rem 0.8rem;
-            border-radius: 10px;
-            font-size: 0.7rem;
-            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 800;
+            color: #999;
         }
     </style>
 </head>
-<body class="antialiased selection:bg-pink-500 selection:text-white">
+<body class="antialiased">
 
     <!-- Navbar -->
     <nav class="sticky top-0 z-50 glass-card border-b border-white/5 px-6 py-4">
         <div class="container mx-auto flex justify-between items-center">
-            <span class="font-black text-xl tracking-tighter uppercase">EDITS <span class="text-pink-500 italic">HOTS</span> AI</span>
-            <div class="hidden md:flex gap-4">
-                <span class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mt-1">Sello de Calidad </span>
+            <span class="font-black text-xl tracking-tighter uppercase">EDITS <span class="text-pink-500">HOTS</span> AI</span>
+            <div class="flex items-center gap-4">
+                <div class="hidden sm:flex gap-2">
+                    <span class="badge italic text-pink-500">4K ULTRA HD</span>
+                    <span class="badge">IA MODELS</span>
+                </div>
             </div>
         </div>
     </nav>
 
-    <!-- Header / Métodos de Pago -->
-    <header class="container mx-auto px-6 pt-12 pb-16 text-center">
-        <h1 class="text-4xl md:text-7xl font-extrabold mb-8 tracking-tight uppercase leading-none">
-            TU IMAGINACIÓN <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">HECHA REALIDAD</span>
-        </h1>
-
-        <div class="max-w-4xl mx-auto glass-card rounded-3xl p-8 text-left border border-white/10">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div>
-                    <h3 class="text-pink-500 text-xs font-black uppercase tracking-widest mb-4">Solo Perú 🇵🇪</h3>
-                    <div class="flex flex-wrap gap-2">
-                        <span class="payment-badge">YAPE</span>
-                        <span class="payment-badge">PLIN</span>
-                        <span class="payment-badge">PREPEX</span>
-                        <span class="payment-badge">MERCADO PAGO</span>
-                    </div>
+    <!-- Pagos -->
+    <header class="container mx-auto px-6 pt-12 pb-12 text-center">
+        <h1 class="text-4xl md:text-6xl font-black mb-8 italic uppercase tracking-tighter">PORTAFOLIO <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">PREMIUM</span></h1>
+        
+        <div class="max-w-3xl mx-auto glass-card rounded-2xl p-6 flex flex-col md:flex-row justify-around items-center gap-6 border border-white/10">
+            <div class="text-center">
+                <p class="text-[10px] uppercase font-bold text-gray-500 mb-2 tracking-widest">Pago Local 🇵🇪</p>
+                <div class="flex gap-3 justify-center">
+                   <img src="https://vignette.wikia.nocookie.net/logopedia/images/2/2a/Yape_logo.png" class="h-6 opacity-80" alt="Yape">
+                   <img src="https://seeklogo.com/images/P/plin-logo-8772322E21-seeklogo.com.png" class="h-6 opacity-80" alt="Plin">
                 </div>
-                <div>
-                    <h3 class="text-purple-500 text-xs font-black uppercase tracking-widest mb-4">Internacional 🌎</h3>
-                    <div class="flex flex-wrap gap-2">
-                        <span class="payment-badge">PAYPAL</span>
-                        <span class="payment-badge">BINANCE USDT</span>
-                    </div>
+            </div>
+            <div class="h-10 w-px bg-white/10 hidden md:block"></div>
+            <div class="text-center">
+                <p class="text-[10px] uppercase font-bold text-gray-500 mb-2 tracking-widest">Pago Global 🌎</p>
+                <div class="flex gap-4 justify-center items-center">
+                    <i class="fa-brands fa-paypal text-[#0070ba] text-xl"></i>
+                    <i class="fa-brands fa-bitcoin text-[#f3ba2f] text-xl"></i>
+                    <span class="text-xs font-bold">BINANCE</span>
                 </div>
             </div>
         </div>
     </header>
 
-    <!-- Galería de Portafolio -->
+    <!-- Galería -->
     <main class="container mx-auto px-6 pb-24">
-        <div class="flex items-center gap-4 mb-10">
-            <div class="h-px bg-white/10 flex-grow"></div>
-            <h2 class="text-sm font-black text-gray-400 uppercase tracking-[0.3em]">Trabajos Recientes</h2>
-            <div class="h-px bg-white/10 flex-grow"></div>
-        </div>
-
         <div id="portfolio-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            <!-- Items generados por JS -->
+            <!-- Cargado por JS -->
         </div>
     </main>
 
-    <footer class="py-20 bg-[#020202] border-t border-white/5 text-center">
-        <div class="container mx-auto px-6">
-            <p class="text-gray-500 text-[10px] uppercase tracking-widest mb-4">Edits Hots AI - Portafolio Oficial</p>
-            <div class="flex justify-center gap-6 opacity-30 grayscale mb-8">
-                  
-            </div>
-            <p class="text-gray-700 text-[9px]">© 2024 TODOS LOS DERECHOS RESERVADOS</p>
-        </div>
-    </footer>
-
     <script>
         /**
-         * LÓGICA DE MULTIMEDIA
-         * Convierte los links de Drive según el tipo (imagen o video)
+         * FUNCIÓN DE CONVERSIÓN DRIVE
          */
-        function getMediaHTML(item) {
-            let finalUrl = item.url;
-            
-            if (item.url.includes('drive.google.com')) {
+        function getDriveEmbedUrl(url) {
+            if (url.includes('drive.google.com')) {
                 const regExp = /\/file\/d\/([^\/?]+)|id=([^\&]+)/;
-                const match = item.url.match(regExp);
+                const match = url.match(regExp);
                 const fileId = match ? (match[1] || match[2]) : null;
-
-                if (fileId) {
-                    if (item.type === 'video') {
-                        // El modo preview permite reproducir el video con controles de Drive
-                        return `<iframe src="https://drive.google.com/file/d/${fileId}/preview" allow="autoplay"></iframe>`;
-                    } else {
-                        // Imagen directa
-                        return `<img src="https://lh3.googleusercontent.com/u/0/d/${fileId}" alt="${item.title}" loading="lazy">`;
-                    }
-                }
+                return fileId ? `https://drive.google.com/file/d/${fileId}/preview?autoplay=1` : url;
             }
+            return url;
+        }
 
-            if (item.type === 'video') {
-                return `<video src="${item.url}" controls playsinline></video>`;
+        function getDriveImageUrl(url) {
+             if (url.includes('drive.google.com')) {
+                const regExp = /\/file\/d\/([^\/?]+)|id=([^\&]+)/;
+                const match = url.match(regExp);
+                const fileId = match ? (match[1] || match[2]) : null;
+                return fileId ? `https://lh3.googleusercontent.com/u/0/d/${fileId}` : url;
             }
-            return `<img src="${item.url}" alt="${item.title}">`;
+            return url;
         }
 
         // --- LISTA DE ITEMS ---
         const portfolioItems = [
             { 
                 type: 'video', 
-                url: 'https://drive.google.com/file/d/12iiXHWxRzikjUVyzL0byJqCbzGQ2qiSu/view?usp=drivesdk', 
+                videoUrl: 'https://drive.google.com/file/d/12iiXHWxRzikjUVyzL0byJqCbzGQ2qiSu/view?usp=drivesdk', 
+                thumbUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800', // Pon aquí el link de la imagen personalizada
                 title: 'Modelo AI Video Pro' 
             },
             { 
                 type: 'image', 
                 url: 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=800', 
-                title: 'Edición Estilo Gold' 
+                title: 'Retrato Dorado' 
+            },
+            { 
+                type: 'video', 
+                videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4', 
+                thumbUrl: 'https://images.unsplash.com/photo-1550684848-86a5d8727436?q=80&w=800',
+                title: 'Clip Abstracto' 
             },
             { 
                 type: 'image', 
-                url: 'https://images.unsplash.com/photo-1550684848-86a5d8727436?q=80&w=800', 
-                title: 'Neon Portrait AI' 
-            },
-            { 
-                type: 'image', 
-                url: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=800', 
-                title: 'Concepto Digital' 
+                url: 'https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=800', 
+                title: 'Cyberpunk Girl' 
             }
         ];
 
@@ -219,18 +188,40 @@
             const card = document.createElement('div');
             card.className = 'portfolio-card';
             
+            let mediaHtml = '';
+
+            if (item.type === 'video') {
+                const videoFinal = getDriveEmbedUrl(item.videoUrl);
+                const thumbFinal = getDriveImageUrl(item.thumbUrl);
+
+                mediaHtml = `
+                    <div class="media-wrapper">
+                        <!-- Portada Personalizada -->
+                        <img src="${thumbFinal}" class="thumbnail-overlay media-content" alt="Portada">
+                        <!-- Video debajo -->
+                        ${item.videoUrl.includes('drive.google.com') 
+                            ? `<iframe src="${videoFinal}" class="media-content" allow="autoplay"></iframe>`
+                            : `<video src="${item.videoUrl}" class="media-content" loop muted playsinline onmouseover="this.play()" onmouseout="this.pause()"></video>`
+                        }
+                    </div>
+                `;
+            } else {
+                const imgFinal = getDriveImageUrl(item.url);
+                mediaHtml = `
+                    <div class="media-wrapper">
+                        <img src="${imgFinal}" class="media-content" alt="${item.title}">
+                    </div>
+                `;
+            }
+
             card.innerHTML = `
-                <div class="media-container">
-                    ${getMediaHTML(item)}
+                ${mediaHtml}
+                <div class="p-5">
+                    <h3 class="font-black text-lg uppercase italic mb-4 leading-tight">${item.title}</h3>
+                    <a href="${botLink}" target="_blank" class="order-btn block text-center py-3 rounded-xl font-extrabold text-xs uppercase tracking-tighter">
+                        <i class="fa-brands fa-telegram mr-2"></i> Solicitar Edit
+                    </a>
                 </div>
-                <div class="p-5 flex-grow">
-                    <h3 class="text-white font-bold text-lg leading-tight uppercase italic mb-1">${item.title}</h3>
-                    <p class="text-gray-500 text-[10px] uppercase tracking-widest font-semibold">Calidad Ultra HD</p>
-                </div>
-                <a href="${botLink}" target="_blank" class="order-button">
-                    <i class="fa-brands fa-telegram"></i>
-                    Pedir este Edit
-                </a>
             `;
             grid.appendChild(card);
         });
