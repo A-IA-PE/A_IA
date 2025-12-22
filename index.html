@@ -3,184 +3,237 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EDITS HOTS AI | Portafolio Oficial</title>
+    <title>EDITS HOTS AI | Portafolio Interactivo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
         
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0a0a0a;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #050505;
             color: #ffffff;
+            scroll-behavior: smooth;
         }
 
         .glass-card {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        .gradient-text {
-            background: linear-gradient(90deg, #ff0080, #7928ca);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .portfolio-item {
+        .gradient-border {
             position: relative;
-            overflow: hidden;
             border-radius: 1rem;
-            aspect-ratio: 9/16;
-            cursor: pointer;
+            background: linear-gradient(90deg, #ff0080, #7928ca);
+            padding: 1px;
         }
 
-        .portfolio-item img, .portfolio-item video {
+        .inner-content {
+            background: #0a0a0a;
+            border-radius: 1rem;
+            height: 100%;
+            width: 100%;
+        }
+
+        .portfolio-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 1.5rem;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+        }
+
+        .portfolio-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 0, 128, 0.3);
+        }
+
+        .media-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 9/16;
+            background: #000;
+        }
+
+        .media-container iframe, .media-container img, .media-container video {
             width: 100%;
             height: 100%;
+            border: none;
             object-fit: cover;
-            transition: transform 0.5s ease;
         }
 
-        .portfolio-item:hover img {
-            transform: scale(1.1);
-        }
-
-        .overlay {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
-            opacity: 0;
+        .order-button {
+            background: linear-gradient(90deg, #ff0080, #7928ca);
+            color: white;
+            font-weight: 800;
+            text-align: center;
+            padding: 1rem;
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.85rem;
             transition: opacity 0.3s ease;
             display: flex;
-            align-items: flex-end;
-            padding: 1.5rem;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
 
-        .portfolio-item:hover .overlay {
-            opacity: 1;
+        .order-button:hover {
+            opacity: 0.9;
         }
 
         .payment-badge {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 0.5rem 1rem;
-            border-radius: 99px;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.875rem;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.5rem 0.8rem;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
         }
     </style>
 </head>
-<body class="antialiased">
+<body class="antialiased selection:bg-pink-500 selection:text-white">
 
-    <!-- Header / Presentación -->
-    <header class="container mx-auto px-6 py-12 text-center md:py-20">
-        <h1 class="text-5xl md:text-7xl font-black mb-4 tracking-tighter">
-            EDITS <span class="gradient-text">HOTS AI</span>
+    <!-- Navbar -->
+    <nav class="sticky top-0 z-50 glass-card border-b border-white/5 px-6 py-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <span class="font-black text-xl tracking-tighter uppercase">EDITS <span class="text-pink-500 italic">HOTS</span> AI</span>
+            <div class="hidden md:flex gap-4">
+                <span class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mt-1">Sello de Calidad </span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header / Métodos de Pago -->
+    <header class="container mx-auto px-6 pt-12 pb-16 text-center">
+        <h1 class="text-4xl md:text-7xl font-extrabold mb-8 tracking-tight uppercase leading-none">
+            TU IMAGINACIÓN <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">HECHA REALIDAD</span>
         </h1>
-        <p class="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto mb-10">
-            Transformando la imaginación en realidad digital con inteligencia artificial de vanguardia. Calidad premium garantizada.
-        </p>
 
-        <!-- Métodos de Pago Resaltados -->
-        <div class="glass-card rounded-2xl p-6 md:p-8 max-w-4xl mx-auto mb-12">
-            <h2 class="text-sm uppercase tracking-widest text-pink-500 font-bold mb-6">Métodos de Pago Aceptados</h2>
-            
+        <div class="max-w-4xl mx-auto glass-card rounded-3xl p-8 text-left border border-white/10">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Local Perú -->
                 <div>
-                    <h3 class="text-left text-white/50 text-xs mb-4 font-semibold uppercase">Solo Perú 🇵🇪</h3>
-                    <div class="flex flex-wrap gap-3 justify-start">
-                        <div class="payment-badge"><i class="fa-solid fa-wallet text-yellow-400"></i> Yape</div>
-                        <div class="payment-badge"><i class="fa-solid fa-mobile-screen text-purple-400"></i> Plin</div>
-                        <div class="payment-badge"><i class="fa-solid fa-credit-card text-blue-400"></i> Prepex</div>
-                        <div class="payment-badge"><i class="fa-solid fa-shop text-blue-500"></i> Mercado Pago</div>
+                    <h3 class="text-pink-500 text-xs font-black uppercase tracking-widest mb-4">Solo Perú 🇵🇪</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="payment-badge">YAPE</span>
+                        <span class="payment-badge">PLIN</span>
+                        <span class="payment-badge">PREPEX</span>
+                        <span class="payment-badge">MERCADO PAGO</span>
                     </div>
                 </div>
-
-                <!-- Internacional -->
                 <div>
-                    <h3 class="text-left text-white/50 text-xs mb-4 font-semibold uppercase">Internacional 🌎</h3>
-                    <div class="flex flex-wrap gap-3 justify-start">
-                        <div class="payment-badge"><i class="fa-brands fa-paypal text-blue-600"></i> PayPal</div>
-                        <div class="payment-badge"><i class="fa-brands fa-bitcoin text-yellow-500"></i> Binance (USDT)</div>
+                    <h3 class="text-purple-500 text-xs font-black uppercase tracking-widest mb-4">Internacional 🌎</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="payment-badge">PAYPAL</span>
+                        <span class="payment-badge">BINANCE USDT</span>
                     </div>
                 </div>
             </div>
         </div>
-
-        <a href="https://t.me/A_IA_BOT" target="_blank" class="inline-flex items-center gap-2 bg-white text-black px-8 py-4 rounded-full font-bold hover:bg-gray-200 transition-colors">
-            <i class="fa-brands fa-telegram text-xl"></i>
-            ORDENAR AHORA
-        </a>
     </header>
 
     <!-- Galería de Portafolio -->
     <main class="container mx-auto px-6 pb-24">
-        <div class="flex items-center justify-between mb-8">
-            <h2 class="text-2xl font-bold">Galería de Muestras</h2>
-            <span class="text-gray-500 text-sm">Click para pedir en el Bot</span>
+        <div class="flex items-center gap-4 mb-10">
+            <div class="h-px bg-white/10 flex-grow"></div>
+            <h2 class="text-sm font-black text-gray-400 uppercase tracking-[0.3em]">Trabajos Recientes</h2>
+            <div class="h-px bg-white/10 flex-grow"></div>
         </div>
 
-        <div id="portfolio-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-            <!-- Los items se cargan dinámicamente -->
+        <div id="portfolio-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <!-- Items generados por JS -->
         </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="border-t border-white/10 py-10 text-center">
-        <p class="text-gray-500 text-sm">
-            © 2024 EDITS HOTS AI - Todos los derechos reservados
-        </p>
+    <footer class="py-20 bg-[#020202] border-t border-white/5 text-center">
+        <div class="container mx-auto px-6">
+            <p class="text-gray-500 text-[10px] uppercase tracking-widest mb-4">Edits Hots AI - Portafolio Oficial</p>
+            <div class="flex justify-center gap-6 opacity-30 grayscale mb-8">
+                  
+            </div>
+            <p class="text-gray-700 text-[9px]">© 2024 TODOS LOS DERECHOS RESERVADOS</p>
+        </div>
     </footer>
 
     <script>
-        // --- CONFIGURACIÓN DE TU PORTAFOLIO ---
-        // Puedes cambiar las URLs por tus propias imágenes o videos (MP4)
+        /**
+         * LÓGICA DE MULTIMEDIA
+         * Convierte los links de Drive según el tipo (imagen o video)
+         */
+        function getMediaHTML(item) {
+            let finalUrl = item.url;
+            
+            if (item.url.includes('drive.google.com')) {
+                const regExp = /\/file\/d\/([^\/?]+)|id=([^\&]+)/;
+                const match = item.url.match(regExp);
+                const fileId = match ? (match[1] || match[2]) : null;
+
+                if (fileId) {
+                    if (item.type === 'video') {
+                        // El modo preview permite reproducir el video con controles de Drive
+                        return `<iframe src="https://drive.google.com/file/d/${fileId}/preview" allow="autoplay"></iframe>`;
+                    } else {
+                        // Imagen directa
+                        return `<img src="https://lh3.googleusercontent.com/u/0/d/${fileId}" alt="${item.title}" loading="lazy">`;
+                    }
+                }
+            }
+
+            if (item.type === 'video') {
+                return `<video src="${item.url}" controls playsinline></video>`;
+            }
+            return `<img src="${item.url}" alt="${item.title}">`;
+        }
+
+        // --- LISTA DE ITEMS ---
         const portfolioItems = [
-            { type: 'image', url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=800', title: 'Edit Estilo 1' },
-            { type: 'image', url: 'https://images.unsplash.com/photo-1633167606207-d840b5070fc2?auto=format&fit=crop&q=80&w=800', title: 'Cyberpunk Red' },
-            { type: 'image', url: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&q=80&w=800', title: 'Neon Portrait' },
-            { type: 'image', url: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?auto=format&fit=crop&q=80&w=800', title: 'AI Concept 01' },
-            { type: 'image', url: 'https://images.unsplash.com/photo-1614728263952-84ea206f99b6?auto=format&fit=crop&q=80&w=800', title: 'Vaporwave Style' },
-            { type: 'image', url: 'https://images.unsplash.com/photo-1605142859862-978be7eba909?auto=format&fit=crop&q=80&w=800', title: 'Dark Aesthetic' },
-            { type: 'image', url: 'https://images.unsplash.com/photo-1618556450991-2f1af64e8191?auto=format&fit=crop&q=80&w=800', title: 'Anime AI Mix' },
-            { type: 'image', url: 'https://images.unsplash.com/photo-1578632738980-433463a9488b?auto=format&fit=crop&q=80&w=800', title: 'Luxury Edit' },
+            { 
+                type: 'video', 
+                url: 'https://drive.google.com/file/d/12iiXHWxRzikjUVyzL0byJqCbzGQ2qiSu/view?usp=drivesdk', 
+                title: 'Modelo AI Video Pro' 
+            },
+            { 
+                type: 'image', 
+                url: 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=800', 
+                title: 'Edición Estilo Gold' 
+            },
+            { 
+                type: 'image', 
+                url: 'https://images.unsplash.com/photo-1550684848-86a5d8727436?q=80&w=800', 
+                title: 'Neon Portrait AI' 
+            },
+            { 
+                type: 'image', 
+                url: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=800', 
+                title: 'Concepto Digital' 
+            }
         ];
 
         const grid = document.getElementById('portfolio-grid');
         const botLink = "https://t.me/A_IA_BOT";
 
-        function renderPortfolio() {
-            portfolioItems.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'portfolio-item';
-                card.onclick = () => window.open(botLink, '_blank');
-
-                let content = '';
-                if(item.type === 'video') {
-                    content = `<video src="${item.url}" autoplay loop muted playsinline></video>`;
-                } else {
-                    content = `<img src="${item.url}" alt="${item.title}" loading="lazy">`;
-                }
-
-                card.innerHTML = `
-                    ${content}
-                    <div class="overlay">
-                        <div>
-                            <p class="text-xs text-pink-500 font-bold uppercase tracking-widest mb-1">AI Edit</p>
-                            <h3 class="font-bold text-lg">${item.title}</h3>
-                        </div>
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
-        }
-
-        renderPortfolio();
+        portfolioItems.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'portfolio-card';
+            
+            card.innerHTML = `
+                <div class="media-container">
+                    ${getMediaHTML(item)}
+                </div>
+                <div class="p-5 flex-grow">
+                    <h3 class="text-white font-bold text-lg leading-tight uppercase italic mb-1">${item.title}</h3>
+                    <p class="text-gray-500 text-[10px] uppercase tracking-widest font-semibold">Calidad Ultra HD</p>
+                </div>
+                <a href="${botLink}" target="_blank" class="order-button">
+                    <i class="fa-brands fa-telegram"></i>
+                    Pedir este Edit
+                </a>
+            `;
+            grid.appendChild(card);
+        });
     </script>
 </body>
 </html>
-
