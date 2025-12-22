@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EDITS HOTS AI | Portafolio Experto</title>
+    <title>EDITS HOTS AI | Portafolio Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -29,6 +29,7 @@
             overflow: hidden;
             border: 1px solid rgba(255, 255, 255, 0.05);
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
         }
 
         .portfolio-card:hover {
@@ -45,24 +46,36 @@
             overflow: hidden;
         }
 
-        /* La imagen de portada que desaparece */
+        /* Capa invisible para detectar el hover sin interferencia del iframe */
+        .hover-detector {
+            position: absolute;
+            inset: 0;
+            z-index: 30;
+            cursor: pointer;
+        }
+
+        /* La imagen de portada con efecto cortina */
         .thumbnail-overlay {
             position: absolute;
             inset: 0;
             z-index: 20;
-            transition: opacity 0.5s ease, transform 0.5s ease;
-            pointer-events: none;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease;
+            object-fit: cover;
+            width: 100%;
+            height: 100%;
         }
 
+        /* Efecto deslizar hacia arriba (Cortina) */
         .portfolio-card:hover .thumbnail-overlay {
-            opacity: 0;
-            transform: scale(1.1);
+            transform: translateY(-100%);
+            opacity: 0.8;
         }
 
         .media-content {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            border: none;
         }
 
         .order-btn {
@@ -72,7 +85,8 @@
 
         .order-btn:hover {
             filter: brightness(1.2);
-            letter-spacing: 2px;
+            letter-spacing: 1px;
+            transform: scale(1.02);
         }
 
         .badge {
@@ -94,7 +108,7 @@
             <div class="flex items-center gap-4">
                 <div class="hidden sm:flex gap-2">
                     <span class="badge italic text-pink-500">4K ULTRA HD</span>
-                    <span class="badge">IA MODELS</span>
+                    <span class="badge uppercase">Premium Edits</span>
                 </div>
             </div>
         </div>
@@ -102,25 +116,24 @@
 
     <!-- Pagos -->
     <header class="container mx-auto px-6 pt-12 pb-12 text-center">
-        <h1 class="text-4xl md:text-6xl font-black mb-8 italic uppercase tracking-tighter">PORTAFOLIO <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">PREMIUM</span></h1>
+        <h1 class="text-4xl md:text-6xl font-black mb-8 italic uppercase tracking-tighter">PORTAFOLIO <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 text-shadow">PREMIUM</span></h1>
         
-        <div class="max-w-3xl mx-auto glass-card rounded-2xl p-6 flex flex-col md:flex-row justify-around items-center gap-6 border border-white/10">
+        <div class="max-w-4xl mx-auto glass-card rounded-2xl p-6 flex flex-col md:flex-row justify-around items-center gap-8 border border-white/10">
             <div class="text-center">
-                <p class="text-[10px] uppercase font-bold text-gray-500 mb-2 tracking-widest">Pago Local 🇵🇪</p>
-                <div class="flex gap-3 justify-center">
-                   <img src="https://images.seeklogo.com/logo-png/39/1/yape-app-logo-png_seeklogo-399697.png" class="h-6 opacity-80" alt="Yape">
-                   <img src="https://images.seeklogo.com/logo-png/43/1/plin-logo-png_seeklogo-434340.png" class="h-6 opacity-80" alt="Plin">
-                   <img src="https://www.sociedadsadec.org.ar/wp-content/uploads/2024/01/logo-mercado-pago.png" class="h-6 opacity-80" alt="Mercado pago">
-                   <img src="https://logosenvector.com/logo/img/prexpe-37718.png" class="h-6 opacity-80" alt="Prexpex">
+                <p class="text-[10px] uppercase font-bold text-gray-500 mb-3 tracking-widest">Pago Local 🇵🇪</p>
+                <div class="flex gap-4 justify-center items-center">
+                   <div class="flex flex-col items-center"><i class="fa-solid fa-mobile-screen text-teal-400 text-xl mb-1"></i> <span class="text-[9px] font-bold">YAPE</span></div>
+                   <div class="flex flex-col items-center"><i class="fa-solid fa-mobile-button text-purple-400 text-xl mb-1"></i> <span class="text-[9px] font-bold">PLIN</span></div>
+                   <div class="flex flex-col items-center"><i class="fa-solid fa-credit-card text-blue-400 text-xl mb-1"></i> <span class="text-[9px] font-bold">PREX</span></div>
+                   <div class="flex flex-col items-center"><i class="fa-solid fa-building-columns text-orange-400 text-xl mb-1"></i> <span class="text-[9px] font-bold">M. PAGO</span></div>
                 </div>
             </div>
             <div class="h-10 w-px bg-white/10 hidden md:block"></div>
             <div class="text-center">
-                <p class="text-[10px] uppercase font-bold text-gray-500 mb-2 tracking-widest">Pago Global 🌎</p>
-                <div class="flex gap-4 justify-center items-center">
-                    <i class="fa-brands fa-paypal text-[#0070ba] text-xl"></i>
-                    <i class="fa-brands fa-bitcoin text-[#f3ba2f] text-xl"></i>
-                    <span class="text-xs font-bold">BINANCE</span>
+                <p class="text-[10px] uppercase font-bold text-gray-500 mb-3 tracking-widest">Pago Global 🌎</p>
+                <div class="flex gap-6 justify-center items-center">
+                    <div class="flex flex-col items-center"><i class="fa-brands fa-paypal text-[#0070ba] text-2xl mb-1"></i> <span class="text-[9px] font-bold">PAYPAL</span></div>
+                    <div class="flex flex-col items-center"><i class="fa-brands fa-bitcoin text-[#f3ba2f] text-2xl mb-1"></i> <span class="text-[9px] font-bold">BINANCE</span></div>
                 </div>
             </div>
         </div>
@@ -135,7 +148,7 @@
 
     <script>
         /**
-         * FUNCIÓN DE CONVERSIÓN DRIVE
+         * LÓGICA DE DRIVE
          */
         function getDriveEmbedUrl(url) {
             if (url.includes('drive.google.com')) {
@@ -162,7 +175,7 @@
             { 
                 type: 'video', 
                 videoUrl: 'https://drive.google.com/file/d/12iiXHWxRzikjUVyzL0byJqCbzGQ2qiSu/view?usp=drivesdk', 
-                thumbUrl: 'https://i.postimg.cc/bNdvQnWg/IMG_20251221_210451_277.jpg', // Pon aquí el link de la imagen personalizada
+                thumbUrl: 'https://i.postimg.cc/bNdvQnWg/IMG_20251221_210451_277.jpg', 
                 title: 'FULL-BODY NAKED' 
             },
             { 
@@ -198,12 +211,14 @@
 
                 mediaHtml = `
                     <div class="media-wrapper">
+                        <!-- Detector de Hover (Capa invisible) -->
+                        <div class="hover-detector"></div>
                         <!-- Portada Personalizada -->
                         <img src="${thumbFinal}" class="thumbnail-overlay media-content" alt="Portada">
                         <!-- Video debajo -->
                         ${item.videoUrl.includes('drive.google.com') 
-                            ? `<iframe src="${videoFinal}" class="media-content" allow="autoplay"></iframe>`
-                            : `<video src="${item.videoUrl}" class="media-content" loop muted playsinline onmouseover="this.play()" onmouseout="this.pause()"></video>`
+                            ? `<iframe src="${videoFinal}" class="media-content"></iframe>`
+                            : `<video src="${item.videoUrl}" class="media-content" loop muted playsinline></video>`
                         }
                     </div>
                 `;
@@ -220,13 +235,23 @@
                 ${mediaHtml}
                 <div class="p-5">
                     <h3 class="font-black text-lg uppercase italic mb-4 leading-tight">${item.title}</h3>
-                    <a href="${botLink}" target="_blank" class="order-btn block text-center py-3 rounded-xl font-extrabold text-xs uppercase tracking-tighter">
+                    <a href="${botLink}" target="_blank" class="order-btn block text-center py-4 rounded-xl font-extrabold text-xs uppercase tracking-widest shadow-lg">
                         <i class="fa-brands fa-telegram mr-2"></i> Solicitar Edit
                     </a>
                 </div>
             `;
+
+            // Lógica para reproducir/pausar videos directos al detectar el hover en la capa superior
+            if (item.type === 'video' && !item.videoUrl.includes('drive.google.com')) {
+                const detector = card.querySelector('.hover-detector');
+                const video = card.querySelector('video');
+                detector.addEventListener('mouseenter', () => video.play());
+                detector.addEventListener('mouseleave', () => video.pause());
+            }
+
             grid.appendChild(card);
         });
     </script>
 </body>
 </html>
+
