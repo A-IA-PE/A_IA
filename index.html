@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDITS HOTS AI | Portafolio Oficial</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0a0a0a;
+            color: #ffffff;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .gradient-text {
+            background: linear-gradient(90deg, #ff0080, #7928ca);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .portfolio-item {
+            position: relative;
+            overflow: hidden;
+            border-radius: 1rem;
+            aspect-ratio: 9/16;
+            cursor: pointer;
+        }
+
+        .portfolio-item img, .portfolio-item video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .portfolio-item:hover img {
+            transform: scale(1.1);
+        }
+
+        .overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            display: flex;
+            align-items: flex-end;
+            padding: 1.5rem;
+        }
+
+        .portfolio-item:hover .overlay {
+            opacity: 1;
+        }
+
+        .payment-badge {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 99px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header / Presentación -->
+    <header class="container mx-auto px-6 py-12 text-center md:py-20">
+        <h1 class="text-5xl md:text-7xl font-black mb-4 tracking-tighter">
+            EDITS <span class="gradient-text">HOTS AI</span>
+        </h1>
+        <p class="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto mb-10">
+            Transformando la imaginación en realidad digital con inteligencia artificial de vanguardia. Calidad premium garantizada.
+        </p>
+
+        <!-- Métodos de Pago Resaltados -->
+        <div class="glass-card rounded-2xl p-6 md:p-8 max-w-4xl mx-auto mb-12">
+            <h2 class="text-sm uppercase tracking-widest text-pink-500 font-bold mb-6">Métodos de Pago Aceptados</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Local Perú -->
+                <div>
+                    <h3 class="text-left text-white/50 text-xs mb-4 font-semibold uppercase">Solo Perú 🇵🇪</h3>
+                    <div class="flex flex-wrap gap-3 justify-start">
+                        <div class="payment-badge"><i class="fa-solid fa-wallet text-yellow-400"></i> Yape</div>
+                        <div class="payment-badge"><i class="fa-solid fa-mobile-screen text-purple-400"></i> Plin</div>
+                        <div class="payment-badge"><i class="fa-solid fa-credit-card text-blue-400"></i> Prepex</div>
+                        <div class="payment-badge"><i class="fa-solid fa-shop text-blue-500"></i> Mercado Pago</div>
+                    </div>
+                </div>
+
+                <!-- Internacional -->
+                <div>
+                    <h3 class="text-left text-white/50 text-xs mb-4 font-semibold uppercase">Internacional 🌎</h3>
+                    <div class="flex flex-wrap gap-3 justify-start">
+                        <div class="payment-badge"><i class="fa-brands fa-paypal text-blue-600"></i> PayPal</div>
+                        <div class="payment-badge"><i class="fa-brands fa-bitcoin text-yellow-500"></i> Binance (USDT)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <a href="https://t.me/A_IA_BOT" target="_blank" class="inline-flex items-center gap-2 bg-white text-black px-8 py-4 rounded-full font-bold hover:bg-gray-200 transition-colors">
+            <i class="fa-brands fa-telegram text-xl"></i>
+            ORDENAR AHORA
+        </a>
+    </header>
+
+    <!-- Galería de Portafolio -->
+    <main class="container mx-auto px-6 pb-24">
+        <div class="flex items-center justify-between mb-8">
+            <h2 class="text-2xl font-bold">Galería de Muestras</h2>
+            <span class="text-gray-500 text-sm">Click para pedir en el Bot</span>
+        </div>
+
+        <div id="portfolio-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            <!-- Los items se cargan dinámicamente -->
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/10 py-10 text-center">
+        <p class="text-gray-500 text-sm">
+            © 2024 EDITS HOTS AI - Todos los derechos reservados
+        </p>
+    </footer>
+
+    <script>
+        // --- CONFIGURACIÓN DE TU PORTAFOLIO ---
+        // Puedes cambiar las URLs por tus propias imágenes o videos (MP4)
+        const portfolioItems = [
+            { type: 'image', url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=800', title: 'Edit Estilo 1' },
+            { type: 'image', url: 'https://images.unsplash.com/photo-1633167606207-d840b5070fc2?auto=format&fit=crop&q=80&w=800', title: 'Cyberpunk Red' },
+            { type: 'image', url: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&q=80&w=800', title: 'Neon Portrait' },
+            { type: 'image', url: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?auto=format&fit=crop&q=80&w=800', title: 'AI Concept 01' },
+            { type: 'image', url: 'https://images.unsplash.com/photo-1614728263952-84ea206f99b6?auto=format&fit=crop&q=80&w=800', title: 'Vaporwave Style' },
+            { type: 'image', url: 'https://images.unsplash.com/photo-1605142859862-978be7eba909?auto=format&fit=crop&q=80&w=800', title: 'Dark Aesthetic' },
+            { type: 'image', url: 'https://images.unsplash.com/photo-1618556450991-2f1af64e8191?auto=format&fit=crop&q=80&w=800', title: 'Anime AI Mix' },
+            { type: 'image', url: 'https://images.unsplash.com/photo-1578632738980-433463a9488b?auto=format&fit=crop&q=80&w=800', title: 'Luxury Edit' },
+        ];
+
+        const grid = document.getElementById('portfolio-grid');
+        const botLink = "https://t.me/A_IA_BOT";
+
+        function renderPortfolio() {
+            portfolioItems.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'portfolio-item';
+                card.onclick = () => window.open(botLink, '_blank');
+
+                let content = '';
+                if(item.type === 'video') {
+                    content = `<video src="${item.url}" autoplay loop muted playsinline></video>`;
+                } else {
+                    content = `<img src="${item.url}" alt="${item.title}" loading="lazy">`;
+                }
+
+                card.innerHTML = `
+                    ${content}
+                    <div class="overlay">
+                        <div>
+                            <p class="text-xs text-pink-500 font-bold uppercase tracking-widest mb-1">AI Edit</p>
+                            <h3 class="font-bold text-lg">${item.title}</h3>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        renderPortfolio();
+    </script>
+</body>
+</html>
+
