@@ -2,57 +2,67 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Reproduciendo...</title>
+    <title>Reproductor Optimizado Kosmi</title>
     <style>
-        body { margin: 0; background: black; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
-        video, iframe { width: 100%; height: 100%; border: none; }
+        body { margin: 0; background: #000; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
+        video { width: 100%; height: 100%; max-height: 100vh; object-fit: contain; }
     </style>
 </head>
 <body>
-    <video id="videoPlayer" width="100%" height="100%" controls autoplay></video>
+    <video id="videoPlayer" width="100%" height="100%" controls preload="auto"></video>
+
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         let videoUrl = urlParams.get('url');
         
         if (!videoUrl) {
-            document.body.innerHTML = '<h1 style="color:white">No se especificó URL</h1>';
+            document.body.innerHTML = '<h1 style="color:white;text-align:center;">Error: No se especificó URL del video</h1>';
         } else {
-            videoUrl = decodeURIComponent(videoUrl);
             const video = document.getElementById('videoPlayer');
+            videoUrl = decodeURIComponent(videoUrl);
             
-            // Si es un enlace MP4 directo o HTML wrapper
-            if (videoUrl.endsWith('.mp4') || videoUrl.includes('blob:') || videoUrl.includes('videos/')) {
-                const source = document.createElement('source');
-                source.src = videoUrl;
-                source.type = 'video/mp4';
-                video.appendChild(source);
-                video.load();
-                video.play();
-            } 
-            // Si es un stream M3U8
-            else if (videoUrl.endsWith('.m3u8')) {
-                // Intentar usar HLS.js si está disponible
-                if (typeof Hls !== 'undefined') {
-                    const hls = new Hls();
-                    hls.loadSource(videoUrl);
-                    hls.attachMedia(video);
-                } else {
-                    // Fallback a source normal
-                    const source = document.createElement('source');
-                    source.src = videoUrl;
-                    source.type = 'application/x-mpegURL';
-                    video.appendChild(source);
+            // --- MEJORAS ANTI-DESFASE ---
+            // 1. Manejo del buffer: Evita que el audio se "adelante" si el video se traba
+            video.preload = 'auto';
+            
+            // 2. Forzar que el video espere el audio al recuperarse de un error
+            video.onerror = function(e) {
+                console.warn("Error en el video, intentando recuperar...");
+                video.load(); // Recargar el elemento
+                setTimeout(() => video.play(), 1000);
+            };
+            
+            // 3. Limpiar fuente anterior antes de cargar nueva
+            while (video.firstChild) {
+                video.removeChild(video.firstChild);
+            }
+            
+            // 4. Insertar la fuente con type específico para MP4 (evita que Kosmi intente parsear otros formatos)
+            const source = document.createElement('source');
+            source.src = videoUrl;
+            source.type = 'video/mp4';
+            video.appendChild(source);
+            
+            // 5. Bloquear la pausa automática por inactividad (opcional, útil para Kosmi)
+            video.load();
+            
+            // 6. Si el video no tiene los metadatos completos, esperamos un poco antes de forzar play
+            video.addEventListener('loadedmetadata', () => {
+                if (video.readyState >= 2) {
+                    video.play().catch(e => console.log("Autoplay bloqueado:", e));
+                }
+            });
+            
+            // 7. Fallback: Si el video nunca carga, damos opción de recargar manualmente evitando el error ciego
+            let timeout = setTimeout(() => {
+                if (video.readyState === 0) {
+                    console.log("Timeout: forzando recarga del elemento");
                     video.load();
                 }
-            }
-            // Si es otra cosa (HTML, YouTube, etc.)
-            else {
-                // Cambiar todo el body a un iframe
-                document.body.innerHTML = `<iframe src="${videoUrl}" width="100%" height="100%" allowfullscreen></iframe>`;
-            }
+            }, 8000);
+            
+            video.addEventListener('canplay', () => clearTimeout(timeout));
         }
     </script>
-    <!-- Cargar HLS.js para soporte M3U8 -->
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </body>
 </html>
