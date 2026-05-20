@@ -5,39 +5,54 @@
     <title>Reproduciendo...</title>
     <style>
         body { margin: 0; background: black; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
-        video { width: 100%; height: 100%; object-fit: contain; }
+        video, iframe { width: 100%; height: 100%; border: none; }
     </style>
 </head>
 <body>
     <video id="videoPlayer" width="100%" height="100%" controls autoplay></video>
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        const peliculaId = urlParams.get('id');
-
-        if (!peliculaId) {
-            document.body.innerHTML = '<h1 style="color:white">ID no válido</h1>';
+        let videoUrl = urlParams.get('url');
+        
+        if (!videoUrl) {
+            document.body.innerHTML = '<h1 style="color:white">No se especificó URL</h1>';
         } else {
-            fetch('peliculas.json?t=' + Date.now())
-                .then(res => res.json())
-                .then(peliculas => {
-                    const peli = peliculas.find(p => p.id == peliculaId);
-                    if (peli && peli.videoUrl) {
-                        const video = document.getElementById('videoPlayer');
-                        const source = document.createElement('source');
-                        source.src = peli.videoUrl;
-                        source.type = 'video/mp4';
-                        video.appendChild(source);
-                        video.load();
-                        video.play();
-                    } else {
-                        document.body.innerHTML = '<h1 style="color:white">Película no encontrada</h1>';
-                    }
-                })
-                .catch(err => {
-                    console.error(err);
-                    document.body.innerHTML = '<h1 style="color:white">Error al cargar la película</h1>';
-                });
+            videoUrl = decodeURIComponent(videoUrl);
+            const video = document.getElementById('videoPlayer');
+            
+            // Si es un enlace MP4 directo o HTML wrapper
+            if (videoUrl.endsWith('.mp4') || videoUrl.includes('blob:') || videoUrl.includes('videos/')) {
+                const source = document.createElement('source');
+                source.src = videoUrl;
+                source.type = 'video/mp4';
+                video.appendChild(source);
+                video.load();
+                video.play();
+            } 
+            // Si es un stream M3U8
+            else if (videoUrl.endsWith('.m3u8')) {
+                // Intentar usar HLS.js si está disponible
+                if (typeof Hls !== 'undefined') {
+                    const hls = new Hls();
+                    hls.loadSource(videoUrl);
+                    hls.attachMedia(video);
+                } else {
+                    // Fallback a source normal
+                    const source = document.createElement('source');
+                    source.src = videoUrl;
+                    source.type = 'application/x-mpegURL';
+                    video.appendChild(source);
+                    video.load();
+                }
+            }
+            // Si es otra cosa (HTML, YouTube, etc.)
+            else {
+                // Cambiar todo el body a un iframe
+                document.body.innerHTML = `<iframe src="${videoUrl}" width="100%" height="100%" allowfullscreen></iframe>`;
+            }
         }
     </script>
+    <!-- Cargar HLS.js para soporte M3U8 -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </body>
 </html>
