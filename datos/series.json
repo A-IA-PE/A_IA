@@ -3,6 +3,38 @@
     "id": 1779319406370,
     "titulo": "The boy",
     "portada": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlG3FDYgYpCuSZYDKuKVL0fKZte5csDwAwdaIntbLCyPndKvIyhI0NA--e0hk7uVRCt0gcGN6S41bxRufiMOPhXZjWp33QtCTpAKMQwPT5&s=10",
-    "temporadas": []
+    "temporadas": [
+      {
+        "capitulos": []
+      },
+      {
+        "capitulos": []
+      },
+      {
+        "capitulos": []
+      },
+      {
+        "capitulos": []
+      },
+      {
+        "capitulos": [
+          {
+            "numero": 1,
+            "titulo": "the boys cap6",
+            "videoUrl": "http://zmedghe.rqsglwdvh.com/vod/E8A6BEB857324BCCBB20BC47425ABB95_media.mp4?dev_id=f52157f745278412edf03ea2e51a79fd&user_id=232671742&trans_id=WCy0Qg0hI5BF_txEX9lS1Xhdr&expired=1779333904&app_id=magmob&app_ver=60202&host=zmedghe.rqsglwdvh.com&media_code=E8A6BEB857324BCCBB20BC47425ABB95&auth_id=232671742_magmob__0&client_ip=38.25.4.42&token=375e1da0&sign2_method=sign_o3&instance=0&start_moment=1779319569305&sign2=349452052197bc8e4c787744f46b60ac"
+          },
+          {
+            "numero": 2,
+            "titulo": "the boy cap7",
+            "videoUrl": "http://ptccloud.lsdwedsfsc.site/vod/83478D58B33E461D8DC91A43BFABE402_media.mp4?dev_id=f52157f745278412edf03ea2e51a79fd&user_id=232671742&trans_id=dapJWTLDtUN_xJ0TMmVIcK0x&expired=1779333904&app_id=magmob&app_ver=60202&host=ptccloud.lsdwedsfsc.site&media_code=83478D58B33E461D8DC91A43BFABE402&auth_id=232671742_magmob__0&client_ip=38.25.4.42&token=a8cf6c39&sign2_method=sign_o3&instance=0&start_moment=1779319773840&sign2=ac7df8ced273349ff89a617894f8f349"
+          },
+          {
+            "numero": 3,
+            "titulo": "the boy cap8",
+            "videoUrl": "http://zmedghe.rqsglwdvh.com/vod/D92CB563ED00498F8DC5643CADB5E688_media.mp4?dev_id=f52157f745278412edf03ea2e51a79fd&user_id=232671742&trans_id=WCy0Qg0hI5BF_j97fYDOQHQRs&expired=1779333904&app_id=magmob&app_ver=60202&host=zmedghe.rqsglwdvh.com&media_code=D92CB563ED00498F8DC5643CADB5E688&auth_id=232671742_magmob__0&client_ip=38.25.4.42&token=f8a04890&sign2_method=sign_o3&instance=0&start_moment=1779319883226&sign2=81136d34f7bbf7e695755a109f02afe1"
+          }
+        ]
+      }
+    ]
   }
 ]
