@@ -2,216 +2,248 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Administrar Cine Rave</title>
+    <title>Admin - Cine Rave</title>
     <style>
         body { font-family: Arial, sans-serif; background: #1a1a1a; color: #eee; margin: 0; padding: 20px; }
-        .container { max-width: 800px; margin: auto; background: #2d2d2d; padding: 20px; border-radius: 16px; }
+        .container { max-width: 900px; margin: auto; background: #2d2d2d; padding: 20px; border-radius: 16px; }
         h1, h2 { text-align: center; }
-        input, textarea, button { width: 100%; margin: 8px 0; padding: 10px; border-radius: 8px; border: none; }
+        select, input, button { width: 100%; margin: 8px 0; padding: 10px; border-radius: 8px; border: none; }
         button { background: #ffcc00; color: #1a1a1a; font-weight: bold; cursor: pointer; }
-        button.danger { background: #cc3333; color: white; }
-        .pelicula-item { background: #3a3a3a; margin: 10px 0; padding: 10px; border-radius: 8px; display: flex; gap: 10px; align-items: center; }
-        .pelicula-item img { width: 50px; height: 75px; object-fit: cover; border-radius: 6px; }
-        .pelicula-info { flex: 1; }
-        .pelicula-info strong { display: block; }
-        .acciones button { width: auto; margin: 0 5px; padding: 5px 10px; }
-        .token-input { background: #111; color: #0f0; font-family: monospace; }
-        .status { margin-top: 10px; padding: 8px; border-radius: 8px; text-align: center; }
-        .status.ok { background: #2e7d32; }
-        .status.error { background: #c62828; }
+        .seccion { display: none; }
+        .seccion.activa { display: block; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab { flex: 1; text-align: center; padding: 10px; background: #3a3a3a; border-radius: 8px; cursor: pointer; }
+        .tab.activo { background: #ffcc00; color: black; }
+        .item-list { background: #3a3a3a; margin: 10px 0; padding: 10px; border-radius: 8px; }
+        .campo-array { background: #222; padding: 10px; margin: 10px 0; border-radius: 8px; }
     </style>
 </head>
 <body>
 <div class="container">
-    <h1>🎬 Administrar películas para Rave</h1>
-    <div>
-        <label>🔑 Token GitHub:</label>
-        <input type="password" id="tokenInput" class="token-input" placeholder="Pega tu token clásico con permisos repo">
-        <button id="guardarTokenBtn">Guardar token (solo en memoria)</button>
-    </div>
+    <h1>🎬 Admin Cine Rave</h1>
+    <input type="password" id="tokenInput" placeholder="Token GitHub" style="background:#111;color:#0f0">
+    <button id="guardarToken">Guardar Token</button>
     <div id="status"></div>
 
-    <hr>
-    <h2>📋 Lista actual</h2>
-    <div id="listaAdmin"></div>
+    <div class="tabs">
+        <div class="tab activo" data-tab="peliculas">🎬 Películas</div>
+        <div class="tab" data-tab="series">📺 Series</div>
+        <div class="tab" data-tab="envivo">🔴 EN VIVO</div>
+    </div>
 
-    <hr>
-    <h2>➕ Añadir nueva película</h2>
-    <input type="text" id="titulo" placeholder="Título de la película">
-    <input type="text" id="portada" placeholder="URL de la imagen de portada (jpg/png)">
-    <input type="text" id="videoUrl" placeholder="URL del video (enlace directo .mp4 o Pastebin con reproductor)">
-    <button id="agregarBtn">Agregar película</button>
+    <!-- Sección Películas -->
+    <div id="seccion-peliculas" class="seccion activa">
+        <h2>Lista de Películas</h2>
+        <div id="listaPeliculas"></div>
+        <h3>➕ Añadir Película</h3>
+        <input type="text" id="peliTitulo" placeholder="Título">
+        <input type="text" id="peliPortada" placeholder="URL de portada">
+        <input type="text" id="peliVideo" placeholder="URL del video">
+        <button id="agregarPeli">Agregar</button>
+    </div>
+
+    <!-- Sección Series -->
+    <div id="seccion-series" class="seccion">
+        <h2>Lista de Series</h2>
+        <div id="listaSeries"></div>
+        <h3>➕ Añadir Serie</h3>
+        <input type="text" id="serieTitulo" placeholder="Título de la serie">
+        <input type="text" id="seriePortada" placeholder="URL de portada">
+        <button id="agregarSerie">Agregar Serie</button>
+        <div id="editandoSerie" style="display:none; background:#444; padding:10px; margin-top:10px;">
+            <h4>Editando serie: <span id="editandoNombre"></span></h4>
+            <div id="temporadasContainer"></div>
+            <button id="agregarTemporada">+ Agregar Temporada</button>
+            <button id="guardarSerie">Guardar cambios de serie</button>
+        </div>
+    </div>
+
+    <!-- Sección EN VIVO -->
+    <div id="seccion-envivo" class="seccion">
+        <h2>Lista de Canales EN VIVO</h2>
+        <div id="listaCanales"></div>
+        <h3>➕ Añadir Canal</h3>
+        <input type="text" id="canalNombre" placeholder="Nombre del canal">
+        <input type="text" id="canalLogo" placeholder="URL del logo">
+        <input type="text" id="canalVideo" placeholder="URL del stream (m3u8 o mp4)">
+        <button id="agregarCanal">Agregar Canal</button>
+    </div>
 </div>
 
 <script>
     let githubToken = '';
-    let repoOwner = '';
-    let repoName = '';
-
-    function extraerRepoInfo() {
-        const partes = window.location.pathname.split('/');
-        if (partes.length >= 2) {
-            repoOwner = window.location.hostname.split('.')[0];
-            repoName = partes[1];
-        } else {
-            repoOwner = prompt("Usuario de GitHub (owner):", "A_IA");
-            repoName = prompt("Nombre del repositorio:", "A_IA");
-        }
-    }
-    extraerRepoInfo();
+    let repoOwner = 'a-ia-pe';
+    let repoName = 'A_IA';
+    let editandoSerieId = null;
+    let seriesActuales = [];
 
     const statusDiv = document.getElementById('status');
-    function mostrarStatus(mensaje, esError = false) {
-        statusDiv.innerHTML = `<div class="status ${esError ? 'error' : 'ok'}">${mensaje}</div>`;
-        setTimeout(() => { if(statusDiv.innerHTML === mensaje) statusDiv.innerHTML = ''; }, 3000);
+    function mostrarStatus(msg, error=false) {
+        statusDiv.innerHTML = `<div style="background:${error?'#c62828':'#2e7d32'};padding:8px;border-radius:8px;margin:10px 0">${msg}</div>`;
+        setTimeout(() => statusDiv.innerHTML = '', 3000);
     }
 
-    async function cargarPeliculasDesdeAPI() {
-        if (!githubToken) { mostrarStatus("❌ Primero ingresa el token", true); return []; }
-        const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/peliculas.json`;
+    async function fetchJSON(filename) {
+        const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/datos/${filename}`;
         try {
             const res = await fetch(url, { headers: { Authorization: `token ${githubToken}` } });
             if (res.status === 404) return [];
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            if (!res.ok) throw new Error();
             const data = await res.json();
-            const contenido = atob(data.content);
-            return JSON.parse(contenido);
-        } catch(e) {
-            console.error(e);
-            if(e.message.includes('404')) return [];
-            mostrarStatus("Error al leer peliculas.json: " + e.message, true);
-            return null;
-        }
+            return JSON.parse(atob(data.content));
+        } catch(e) { return []; }
     }
 
-    async function guardarPeliculas(peliculas) {
-        if (!githubToken) { mostrarStatus("Token no ingresado", true); return false; }
-        const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/peliculas.json`;
+    async function saveJSON(filename, data) {
+        const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/datos/${filename}`;
         let sha = null;
         try {
             const res = await fetch(url, { headers: { Authorization: `token ${githubToken}` } });
-            if (res.ok) {
-                const data = await res.json();
-                sha = data.sha;
-            }
+            if (res.ok) sha = (await res.json()).sha;
         } catch(e) {}
-        const contentBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(peliculas, null, 2))));
-        const payload = {
-            message: "Actualización de catálogo desde admin",
-            content: contentBase64,
-            branch: "main"
+        const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
+        const payload = { message: `Update ${filename}`, content, branch: "main", sha };
+        const res = await fetch(url, { method: "PUT", headers: { Authorization: `token ${githubToken}`, "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+        return res.ok;
+    }
+
+    // Películas
+    async function cargarPeliculas() {
+        const pelis = await fetchJSON('peliculas.json');
+        const div = document.getElementById('listaPeliculas');
+        if (!pelis.length) { div.innerHTML = '<p>No hay películas</p>'; return; }
+        div.innerHTML = '';
+        pelis.forEach((p, i) => {
+            div.innerHTML += `<div class="item-list">${p.titulo} <button onclick="eliminarPeli(${i})">❌</button></div>`;
+        });
+    }
+    window.eliminarPeli = async (idx) => {
+        let pelis = await fetchJSON('peliculas.json');
+        pelis.splice(idx,1);
+        if(await saveJSON('peliculas.json', pelis)) { mostrarStatus('Eliminada'); cargarPeliculas(); }
+    };
+    document.getElementById('agregarPeli').onclick = async () => {
+        const titulo = document.getElementById('peliTitulo').value;
+        const portada = document.getElementById('peliPortada').value;
+        const video = document.getElementById('peliVideo').value;
+        if(!titulo || !portada || !video) { mostrarStatus('Completa campos',true); return; }
+        let pelis = await fetchJSON('peliculas.json');
+        pelis.push({ id: Date.now(), titulo, portada, videoUrl: video });
+        if(await saveJSON('peliculas.json', pelis)) { mostrarStatus('Agregada'); cargarPeliculas(); }
+    };
+
+    // Series (edición completa)
+    async function cargarSeries() {
+        seriesActuales = await fetchJSON('series.json');
+        const div = document.getElementById('listaSeries');
+        if (!seriesActuales.length) { div.innerHTML = '<p>No hay series</p>'; return; }
+        div.innerHTML = '';
+        seriesActuales.forEach((s, i) => {
+            div.innerHTML += `<div class="item-list">${s.titulo} 
+                <button onclick="editarSerie(${i})">✏️ Editar</button>
+                <button onclick="eliminarSerie(${i})">❌</button></div>`;
+        });
+    }
+    window.editarSerie = (idx) => {
+        editandoSerieId = idx;
+        const serie = seriesActuales[idx];
+        document.getElementById('editandoSerie').style.display = 'block';
+        document.getElementById('editandoNombre').innerText = serie.titulo;
+        renderTemporadas(serie);
+    };
+    function renderTemporadas(serie) {
+        const container = document.getElementById('temporadasContainer');
+        container.innerHTML = '';
+        serie.temporadas.forEach((temp, tIdx) => {
+            const tempDiv = document.createElement('div');
+            tempDiv.className = 'campo-array';
+            tempDiv.innerHTML = `<h4>Temporada ${tIdx+1}</h4><div id="caps-${tIdx}"></div><button onclick="agregarCapitulo(${tIdx})">+ Capítulo</button> <button onclick="eliminarTemporada(${tIdx})">🗑 Eliminar temporada</button>`;
+            const capsDiv = tempDiv.querySelector(`#caps-${tIdx}`);
+            temp.capitulos.forEach((cap, cIdx) => {
+                capsDiv.innerHTML += `<div style="margin:5px 0"><input value="${cap.titulo}" id="cap-titulo-${tIdx}-${cIdx}" placeholder="Título"> 
+                <input value="${cap.videoUrl}" id="cap-url-${tIdx}-${cIdx}" placeholder="URL" style="width:60%">
+                <button onclick="eliminarCapitulo(${tIdx},${cIdx})">❌</button></div>`;
+            });
+            container.appendChild(tempDiv);
+        });
+    }
+    window.agregarTemporada = () => {
+        seriesActuales[editandoSerieId].temporadas.push({ capitulos: [] });
+        renderTemporadas(seriesActuales[editandoSerieId]);
+    };
+    window.agregarCapitulo = (tIdx) => {
+        seriesActuales[editandoSerieId].temporadas[tIdx].capitulos.push({ numero: seriesActuales[editandoSerieId].temporadas[tIdx].capitulos.length+1, titulo: "Nuevo capítulo", videoUrl: "" });
+        renderTemporadas(seriesActuales[editandoSerieId]);
+    };
+    window.eliminarCapitulo = (tIdx, cIdx) => {
+        seriesActuales[editandoSerieId].temporadas[tIdx].capitulos.splice(cIdx,1);
+        renderTemporadas(seriesActuales[editandoSerieId]);
+    };
+    window.eliminarTemporada = (tIdx) => {
+        seriesActuales[editandoSerieId].temporadas.splice(tIdx,1);
+        renderTemporadas(seriesActuales[editandoSerieId]);
+    };
+    document.getElementById('guardarSerie').onclick = async () => {
+        if(editandoSerieId !== null) {
+            if(await saveJSON('series.json', seriesActuales)) { mostrarStatus('Serie guardada'); cargarSeries(); document.getElementById('editandoSerie').style.display = 'none'; }
+        }
+    };
+    window.eliminarSerie = async (idx) => {
+        seriesActuales.splice(idx,1);
+        if(await saveJSON('series.json', seriesActuales)) { mostrarStatus('Eliminada'); cargarSeries(); }
+    };
+    document.getElementById('agregarSerie').onclick = async () => {
+        const titulo = document.getElementById('serieTitulo').value;
+        const portada = document.getElementById('seriePortada').value;
+        if(!titulo || !portada) { mostrarStatus('Completa campos',true); return; }
+        let series = await fetchJSON('series.json');
+        series.push({ id: Date.now(), titulo, portada, temporadas: [] });
+        if(await saveJSON('series.json', series)) { mostrarStatus('Serie agregada'); cargarSeries(); }
+    };
+
+    // Canales en vivo
+    async function cargarCanales() {
+        const canales = await fetchJSON('envivo.json');
+        const div = document.getElementById('listaCanales');
+        if (!canales.length) { div.innerHTML = '<p>No hay canales</p>'; return; }
+        div.innerHTML = '';
+        canales.forEach((c, i) => {
+            div.innerHTML += `<div class="item-list">${c.nombre} <button onclick="eliminarCanal(${i})">❌</button></div>`;
+        });
+    }
+    window.eliminarCanal = async (idx) => {
+        let canales = await fetchJSON('envivo.json');
+        canales.splice(idx,1);
+        if(await saveJSON('envivo.json', canales)) { mostrarStatus('Eliminado'); cargarCanales(); }
+    };
+    document.getElementById('agregarCanal').onclick = async () => {
+        const nombre = document.getElementById('canalNombre').value;
+        const logo = document.getElementById('canalLogo').value;
+        const video = document.getElementById('canalVideo').value;
+        if(!nombre || !logo || !video) { mostrarStatus('Completa campos',true); return; }
+        let canales = await fetchJSON('envivo.json');
+        canales.push({ id: Date.now(), nombre, logo, videoUrl: video });
+        if(await saveJSON('envivo.json', canales)) { mostrarStatus('Canal agregado'); cargarCanales(); }
+    };
+
+    // Tabs
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.onclick = () => {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('activo'));
+            tab.classList.add('activo');
+            document.querySelectorAll('.seccion').forEach(s => s.classList.remove('activa'));
+            document.getElementById(`seccion-${tab.dataset.tab}`).classList.add('activa');
+            if(tab.dataset.tab === 'peliculas') cargarPeliculas();
+            if(tab.dataset.tab === 'series') cargarSeries();
+            if(tab.dataset.tab === 'envivo') cargarCanales();
         };
-        if (sha) payload.sha = sha;
-        const response = await fetch(url, {
-            method: "PUT",
-            headers: { Authorization: `token ${githubToken}`, "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        });
-        if (response.ok) {
-            mostrarStatus("✅ Guardado correctamente en GitHub");
-            return true;
-        } else {
-            const err = await response.text();
-            mostrarStatus("❌ Error al guardar: " + err, true);
-            return false;
-        }
-    }
-
-    async function actualizarListaAdmin() {
-        const peliculas = await cargarPeliculasDesdeAPI();
-        if (peliculas === null) return;
-        const contenedor = document.getElementById('listaAdmin');
-        if (!peliculas.length) {
-            contenedor.innerHTML = '<p>No hay películas. ¡Añade una!</p>';
-            return;
-        }
-        contenedor.innerHTML = '';
-        peliculas.forEach((peli, idx) => {
-            const div = document.createElement('div');
-            div.className = 'pelicula-item';
-            div.innerHTML = `
-                <img src="${peli.portada}" onerror="this.src='https://via.placeholder.com/50x75'">
-                <div class="pelicula-info">
-                    <strong>${escapeHTML(peli.titulo)}</strong>
-                    <small>${peli.videoUrl.substring(0, 50)}...</small>
-                </div>
-                <div class="acciones">
-                    <button class="editar" data-idx="${idx}">✏️ Editar</button>
-                    <button class="eliminar" data-idx="${idx}">❌ Eliminar</button>
-                </div>
-            `;
-            contenedor.appendChild(div);
-        });
-        document.querySelectorAll('.editar').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                const idx = parseInt(btn.dataset.idx);
-                const pelis = await cargarPeliculasDesdeAPI();
-                if (!pelis) return;
-                const p = pelis[idx];
-                document.getElementById('titulo').value = p.titulo;
-                document.getElementById('portada').value = p.portada;
-                document.getElementById('videoUrl').value = p.videoUrl;
-                if (confirm(`Editar "${p.titulo}"? Se eliminará el registro actual y se añadirá uno nuevo.`)) {
-                    pelis.splice(idx, 1);
-                    await guardarPeliculas(pelis);
-                    document.getElementById('agregarBtn').click();
-                }
-            });
-        });
-        document.querySelectorAll('.eliminar').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const idx = parseInt(btn.dataset.idx);
-                const pelis = await cargarPeliculasDesdeAPI();
-                if (!pelis) return;
-                if (confirm(`¿Eliminar "${pelis[idx].titulo}"?`)) {
-                    pelis.splice(idx, 1);
-                    await guardarPeliculas(pelis);
-                    actualizarListaAdmin();
-                }
-            });
-        });
-    }
-
-    function escapeHTML(str) {
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
-    }
-
-    document.getElementById('guardarTokenBtn').addEventListener('click', () => {
-        githubToken = document.getElementById('tokenInput').value.trim();
-        if (!githubToken) {
-            mostrarStatus("Token vacío", true);
-        } else {
-            mostrarStatus("Token cargado en memoria (no se almacena de forma permanente)");
-            actualizarListaAdmin();
-        }
     });
 
-    document.getElementById('agregarBtn').addEventListener('click', async () => {
-        if (!githubToken) { mostrarStatus("Primero ingresa el token", true); return; }
-        const titulo = document.getElementById('titulo').value.trim();
-        const portada = document.getElementById('portada').value.trim();
-        const videoUrl = document.getElementById('videoUrl').value.trim();
-        if (!titulo || !portada || !videoUrl) {
-            mostrarStatus("Completa todos los campos", true);
-            return;
-        }
-        const peliculas = await cargarPeliculasDesdeAPI();
-        if (peliculas === null) return;
-        const nuevoId = Date.now();
-        peliculas.push({ id: nuevoId, titulo, portada, videoUrl });
-        const exito = await guardarPeliculas(peliculas);
-        if (exito) {
-            document.getElementById('titulo').value = '';
-            document.getElementById('portada').value = '';
-            document.getElementById('videoUrl').value = '';
-            actualizarListaAdmin();
-        }
-    });
+    document.getElementById('guardarToken').onclick = () => {
+        githubToken = document.getElementById('tokenInput').value;
+        mostrarStatus('Token guardado (en memoria)');
+        cargarPeliculas();
+    };
 </script>
 </body>
 </html>
