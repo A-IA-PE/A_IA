@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Series - Cine Rave</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background: #0a0a0a; color: #fff; }
+        .header {
+            background: linear-gradient(135deg, #4444ff, #0000cc);
+            padding: 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .back-btn {
+            position: absolute;
+            left: 20px;
+            top: 20px;
+            background: rgba(0,0,0,0.5);
+            padding: 8px 16px;
+            border-radius: 20px;
+            text-decoration: none;
+            color: white;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 25px;
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .serie {
+            background: #1e1e1e;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.2s;
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+            display: block;
+        }
+        .serie:hover { transform: scale(1.02); background: #2a2a2a; }
+        .serie img {
+            width: 100%;
+            aspect-ratio: 2/3;
+            object-fit: cover;
+        }
+        .titulo { padding: 12px; text-align: center; font-weight: bold; }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            overflow: auto;
+        }
+        .modal-content {
+            background: #1a1a1a;
+            margin: 50px auto;
+            padding: 20px;
+            max-width: 800px;
+            border-radius: 20px;
+        }
+        .close {
+            float: right;
+            font-size: 28px;
+            cursor: pointer;
+        }
+        .temporada {
+            margin: 20px 0;
+            border-top: 1px solid #333;
+            padding-top: 15px;
+        }
+        .temporada h3 {
+            color: #ffcc00;
+            margin-bottom: 10px;
+        }
+        .capitulo {
+            background: #2a2a2a;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .capitulo:hover { background: #3a3a3a; }
+        .capitulo .play-btn {
+            background: #ffcc00;
+            color: black;
+            padding: 5px 15px;
+            border-radius: 20px;
+            text-decoration: none;
+        }
+        .footer { text-align: center; padding: 20px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="cine.html" class="back-btn">← Volver</a>
+        <h1>📺 Series</h1>
+        <p>Selecciona una serie y luego el capítulo</p>
+    </div>
+    <div class="grid" id="listaSeries"></div>
+    <div class="footer">Cine Rave - Compatible con Kosmi y Rave</div>
+
+    <!-- Modal para mostrar temporadas y capítulos -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="serieTitulo"></h2>
+            <div id="capitulosContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        let seriesData = [];
+
+        async function cargarSeries() {
+            try {
+                const res = await fetch('datos/series.json?t=' + Date.now());
+                if (!res.ok) throw new Error();
+                seriesData = await res.json();
+                const grid = document.getElementById('listaSeries');
+                grid.innerHTML = '';
+                seriesData.forEach(serie => {
+                    const card = document.createElement('div');
+                    card.className = 'serie';
+                    card.onclick = () => mostrarModal(serie);
+                    card.innerHTML = `
+                        <img src="${serie.portada}" alt="${serie.titulo}" onerror="this.src='https://via.placeholder.com/200x300?text=Sin+portada'">
+                        <div class="titulo">${escapeHTML(serie.titulo)}</div>
+                    `;
+                    grid.appendChild(card);
+                });
+            } catch(e) {
+                document.getElementById('listaSeries').innerHTML = '<p style="text-align:center">❌ No hay series. Ve al panel de administración.</p>';
+            }
+        }
+
+        function mostrarModal(serie) {
+            const modal = document.getElementById('modal');
+            const tituloElem = document.getElementById('serieTitulo');
+            const container = document.getElementById('capitulosContainer');
+            
+            tituloElem.textContent = serie.titulo;
+            container.innerHTML = '';
+            
+            serie.temporadas.forEach((temp, idx) => {
+                const tempDiv = document.createElement('div');
+                tempDiv.className = 'temporada';
+                tempDiv.innerHTML = `<h3>Temporada ${idx + 1}</h3>`;
+                
+                temp.capitulos.forEach(cap => {
+                    const capDiv = document.createElement('div');
+                    capDiv.className = 'capitulo';
+                    capDiv.innerHTML = `
+                        <span>${cap.numero}. ${escapeHTML(cap.titulo)}</span>
+                        <a href="player.html?url=${encodeURIComponent(cap.videoUrl)}" class="play-btn">▶ Ver</a>
+                    `;
+                    tempDiv.appendChild(capDiv);
+                });
+                container.appendChild(tempDiv);
+            });
+            
+            modal.style.display = 'block';
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        // Cerrar modal
+        document.querySelector('.close').onclick = () => {
+            document.getElementById('modal').style.display = 'none';
+        };
+        window.onclick = (e) => {
+            if (e.target === document.getElementById('modal')) {
+                document.getElementById('modal').style.display = 'none';
+            }
+        };
+
+        cargarSeries();
+    </script>
+</body>
+</html>
