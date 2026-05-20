@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EN VIVO - Cine Rave</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background: #0a0a0a; color: #fff; }
+        .header {
+            background: linear-gradient(135deg, #44ff44, #00aa00);
+            padding: 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .back-btn {
+            position: absolute;
+            left: 20px;
+            top: 20px;
+            background: rgba(0,0,0,0.5);
+            padding: 8px 16px;
+            border-radius: 20px;
+            text-decoration: none;
+            color: white;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 25px;
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .canal {
+            background: #1e1e1e;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.2s;
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+            display: block;
+        }
+        .canal:hover { transform: scale(1.02); background: #2a2a2a; }
+        .canal img {
+            width: 100%;
+            aspect-ratio: 16/9;
+            object-fit: cover;
+        }
+        .titulo { padding: 12px; text-align: center; font-weight: bold; }
+        .live-badge {
+            position: absolute;
+            background: red;
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 11px;
+            margin: 8px;
+        }
+        .footer { text-align: center; padding: 20px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="cine.html" class="back-btn">← Volver</a>
+        <h1>🔴 EN VIVO</h1>
+        <p>Canales 24/7</p>
+    </div>
+    <div class="grid" id="listaCanales"></div>
+    <div class="footer">Cine Rave - Compatible con Kosmi y Rave</div>
+
+    <script>
+        async function cargarCanales() {
+            try {
+                const res = await fetch('datos/envivo.json?t=' + Date.now());
+                if (!res.ok) throw new Error();
+                const canales = await res.json();
+                const grid = document.getElementById('listaCanales');
+                grid.innerHTML = '';
+                canales.forEach(canal => {
+                    const card = document.createElement('a');
+                    card.href = `player.html?url=${encodeURIComponent(canal.videoUrl)}`;
+                    card.className = 'canal';
+                    card.innerHTML = `
+                        <div style="position:relative">
+                            <span class="live-badge">🔴 LIVE</span>
+                            <img src="${canal.logo}" alt="${canal.nombre}" onerror="this.src='https://via.placeholder.com/250x140?text=Canal'">
+                        </div>
+                        <div class="titulo">${escapeHTML(canal.nombre)}</div>
+                    `;
+                    grid.appendChild(card);
+                });
+            } catch(e) {
+                document.getElementById('listaCanales').innerHTML = '<p style="text-align:center">❌ No hay canales en vivo. Ve al panel de administración.</p>';
+            }
+        }
+        function escapeHTML(str) {
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+        cargarCanales();
+    </script>
+</body>
+</html>
