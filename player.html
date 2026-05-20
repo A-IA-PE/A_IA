@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reproduciendo...</title>
+    <style>
+        body { margin: 0; background: black; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+        video { width: 100%; height: 100%; object-fit: contain; }
+    </style>
+</head>
+<body>
+    <video id="videoPlayer" width="100%" height="100%" controls autoplay></video>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const peliculaId = urlParams.get('id');
+
+        if (!peliculaId) {
+            document.body.innerHTML = '<h1 style="color:white">ID no válido</h1>';
+        } else {
+            fetch('peliculas.json?t=' + Date.now())
+                .then(res => res.json())
+                .then(peliculas => {
+                    const peli = peliculas.find(p => p.id == peliculaId);
+                    if (peli && peli.videoUrl) {
+                        const video = document.getElementById('videoPlayer');
+                        const source = document.createElement('source');
+                        source.src = peli.videoUrl;
+                        source.type = 'video/mp4';
+                        video.appendChild(source);
+                        video.load();
+                        video.play();
+                    } else {
+                        document.body.innerHTML = '<h1 style="color:white">Película no encontrada</h1>';
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    document.body.innerHTML = '<h1 style="color:white">Error al cargar la película</h1>';
+                });
+        }
+    </script>
+</body>
+</html>
