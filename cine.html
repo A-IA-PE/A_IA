@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Cine Rave</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #0a0a0a; color: #fff; margin: 0; padding: 20px; }
+        h1 { text-align: center; margin-bottom: 30px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 25px; max-width: 1200px; margin: 0 auto; }
+        .pelicula { background: #1e1e1e; border-radius: 12px; overflow: hidden; transition: transform 0.2s; cursor: pointer; text-decoration: none; color: white; display: block; }
+        .pelicula:hover { transform: scale(1.02); background: #2a2a2a; }
+        .pelicula img { width: 100%; aspect-ratio: 2/3; object-fit: cover; display: block; }
+        .titulo { padding: 12px; text-align: center; font-size: 1rem; font-weight: bold; }
+        .footer { text-align: center; margin-top: 40px; color: #888; }
+        .admin-link { background: #333; padding: 8px 16px; border-radius: 20px; text-decoration: none; color: #ffcc00; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <h1>🎬 Cine para Rave</h1>
+    <div class="grid" id="listaPeliculas"></div>
+    <div class="footer">
+        <a href="admin.html" class="admin-link">🔧 Administrar películas</a>
+    </div>
+
+    <script>
+        async function cargarPeliculas() {
+            try {
+                const res = await fetch('peliculas.json?t=' + Date.now());
+                if (!res.ok) throw new Error('No se pudo cargar el catálogo');
+                const peliculas = await res.json();
+                const grid = document.getElementById('listaPeliculas');
+                grid.innerHTML = '';
+                peliculas.forEach(peli => {
+                    const card = document.createElement('a');
+                    card.href = `player.html?id=${peli.id}`;
+                    card.className = 'pelicula';
+                    card.innerHTML = `
+                        <img src="${peli.portada}" alt="${peli.titulo}" onerror="this.src='https://via.placeholder.com/200x300?text=Sin+portada'">
+                        <div class="titulo">${escapeHTML(peli.titulo)}</div>
+                    `;
+                    grid.appendChild(card);
+                });
+            } catch(e) {
+                document.getElementById('listaPeliculas').innerHTML = '<p style="text-align:center">❌ No hay películas o error al cargar. Ve al panel de administración.</p>';
+            }
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        cargarPeliculas();
+    </script>
+</body>
+</html>
