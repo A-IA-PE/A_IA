@@ -2,66 +2,197 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Reproductor Optimizado Kosmi</title>
+    <title>Reproductor Multiaudio</title>
     <style>
-        body { margin: 0; background: #000; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
-        video { width: 100%; height: 100%; max-height: 100vh; object-fit: contain; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0a0a;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .video-container {
+            flex: 1;
+            background: #000;
+            position: relative;
+        }
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .controls-bar {
+            background: linear-gradient(to top, #000000cc, #00000066);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+        }
+        .audio-selector {
+            background: #1e1e1e;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .audio-selector:hover {
+            background: #ffcc00;
+            color: black;
+        }
+        .info {
+            color: #aaa;
+            font-size: 12px;
+        }
+        .error {
+            color: #ff6666;
+            text-align: center;
+            padding: 20px;
+        }
+        @media (max-width: 768px) {
+            .controls-bar { padding: 8px 12px; }
+            .audio-selector { padding: 6px 12px; font-size: 12px; }
+        }
     </style>
 </head>
 <body>
-    <video id="videoPlayer" width="100%" height="100%" controls preload="auto"></video>
+    <div class="video-container">
+        <video id="videoPlayer" width="100%" height="100%" controls controlslist="nodownload">
+            Tu navegador no soporta videos HTML5.
+        </video>
+    </div>
+    <div class="controls-bar">
+        <div class="info">
+            🎬 <span id="statusText">Cargando video...</span>
+        </div>
+        <div>
+            <select id="audioTrackSelect" class="audio-selector" style="display: none;">
+                <option value="">🔊 Seleccionar idioma...</option>
+            </select>
+        </div>
+    </div>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         let videoUrl = urlParams.get('url');
         
         if (!videoUrl) {
-            document.body.innerHTML = '<h1 style="color:white;text-align:center;">Error: No se especificó URL del video</h1>';
+            document.querySelector('.video-container').innerHTML = '<div class="error">❌ Error: No se especificó URL del video</div>';
+            document.getElementById('statusText').textContent = 'Error: sin URL';
         } else {
-            const video = document.getElementById('videoPlayer');
             videoUrl = decodeURIComponent(videoUrl);
+            const video = document.getElementById('videoPlayer');
+            const audioSelect = document.getElementById('audioTrackSelect');
+            const statusSpan = document.getElementById('statusText');
             
-            // --- MEJORAS ANTI-DESFASE ---
-            // 1. Manejo del buffer: Evita que el audio se "adelante" si el video se traba
+            // Configurar el video
             video.preload = 'auto';
+            video.crossOrigin = 'anonymous'; // Permitir acceso a las pistas
             
-            // 2. Forzar que el video espere el audio al recuperarse de un error
-            video.onerror = function(e) {
-                console.warn("Error en el video, intentando recuperar...");
-                video.load(); // Recargar el elemento
-                setTimeout(() => video.play(), 1000);
-            };
-            
-            // 3. Limpiar fuente anterior antes de cargar nueva
-            while (video.firstChild) {
-                video.removeChild(video.firstChild);
-            }
-            
-            // 4. Insertar la fuente con type específico para MP4 (evita que Kosmi intente parsear otros formatos)
+            // Cargar el video
             const source = document.createElement('source');
             source.src = videoUrl;
             source.type = 'video/mp4';
             video.appendChild(source);
-            
-            // 5. Bloquear la pausa automática por inactividad (opcional, útil para Kosmi)
             video.load();
             
-            // 6. Si el video no tiene los metadatos completos, esperamos un poco antes de forzar play
-            video.addEventListener('loadedmetadata', () => {
-                if (video.readyState >= 2) {
-                    video.play().catch(e => console.log("Autoplay bloqueado:", e));
+            // Variable para almacenar las pistas de audio
+            let audioTracks = [];
+            
+            // Cuando el video está listo, obtener las pistas de audio
+            video.addEventListener('loadedmetadata', function() {
+                statusSpan.textContent = 'Video cargado. Detectando idiomas...';
+                
+                // Obtener pistas de audio
+                if (video.audioTracks) {
+                    audioTracks = Array.from(video.audioTracks);
+                    
+                    if (audioTracks.length > 1) {
+                        // Múltiples pistas disponibles
+                        audioSelect.style.display = 'block';
+                        audioSelect.innerHTML = '<option value="">🔊 Seleccionar idioma...</option>';
+                        
+                        audioTracks.forEach((track, index) => {
+                            const option = document.createElement('option');
+                            option.value = index;
+                            
+                            // Determinar el nombre del idioma
+                            let langName = track.language || `Pista ${index + 1}`;
+                            let label = track.label || '';
+                            
+                            // Mapear códigos de idioma comunes
+                            const langMap = {
+                                'es': '🇪🇸 Español',
+                                'en': '🇬🇧 English',
+                                'pt': '🇵🇹 Português',
+                                'fr': '🇫🇷 Français',
+                                'de': '🇩🇪 Deutsch',
+                                'it': '🇮🇹 Italiano',
+                                'ja': '🇯🇵 日本語',
+                                'zh': '🇨🇳 中文',
+                                'ru': '🇷🇺 Русский',
+                                'ko': '🇰🇷 한국어'
+                            };
+                            
+                            let displayName = langMap[track.language] || langName;
+                            if (label) displayName += ` (${label})`;
+                            
+                            option.textContent = displayName;
+                            option.title = `Pista ${index + 1}${track.language ? ` - ${track.language.toUpperCase()}` : ''}`;
+                            audioSelect.appendChild(option);
+                        });
+                        
+                        statusSpan.textContent = `${audioTracks.length} idiomas disponibles ✓`;
+                    } else if (audioTracks.length === 1) {
+                        statusSpan.textContent = `Idioma: ${audioTracks[0].language || 'único'}`;
+                    } else {
+                        statusSpan.textContent = 'Video cargado (sin selector de audio)';
+                    }
+                } else {
+                    statusSpan.textContent = 'Video cargado';
+                    console.warn('audioTracks no soportado en este navegador');
                 }
             });
             
-            // 7. Fallback: Si el video nunca carga, damos opción de recargar manualmente evitando el error ciego
-            let timeout = setTimeout(() => {
-                if (video.readyState === 0) {
-                    console.log("Timeout: forzando recarga del elemento");
-                    video.load();
+            // Cambiar pista de audio cuando el usuario selecciona
+            audioSelect.addEventListener('change', function() {
+                const selectedIndex = parseInt(this.value);
+                if (!isNaN(selectedIndex) && video.audioTracks && video.audioTracks[selectedIndex]) {
+                    // Deshabilitar todas las pistas
+                    for (let i = 0; i < video.audioTracks.length; i++) {
+                        video.audioTracks[i].enabled = (i === selectedIndex);
+                    }
+                    statusSpan.textContent = `Audio cambiado a: ${audioSelect.options[audioSelect.selectedIndex].textContent}`;
+                    console.log(`Audio track changed to index ${selectedIndex}`);
                 }
-            }, 8000);
+            });
             
-            video.addEventListener('canplay', () => clearTimeout(timeout));
+            // Manejo de errores
+            video.onerror = function(e) {
+                console.error('Error en el video:', video.error);
+                let errorMsg = 'Error desconocido';
+                switch(video.error?.code) {
+                    case 1: errorMsg = 'Carga del video cancelada'; break;
+                    case 2: errorMsg = 'Error de red al cargar el video'; break;
+                    case 3: errorMsg = 'Error al decodificar el video'; break;
+                    case 4: errorMsg = 'Formato de video no soportado'; break;
+                }
+                statusSpan.textContent = `❌ ${errorMsg}`;
+                document.querySelector('.video-container').innerHTML += `<div class="error">❌ ${errorMsg}<br><small>URL: ${videoUrl.substring(0, 80)}...</small></div>`;
+            };
+            
+            video.addEventListener('canplay', () => {
+                statusSpan.textContent = 'Listo para reproducir ✓';
+            });
         }
     </script>
 </body>
