@@ -2,258 +2,43 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Reproductor Multiaudio</title>
+    <title>Reproductor Avanzado</title>
     <style>
+        /* (Estilos generales - puedes copiarlos del código anterior) */
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            background: #0a0a0a;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-        .video-container {
-            flex: 1;
-            background: #000;
-            position: relative;
-        }
-        video {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-        .controls-bar {
-            background: linear-gradient(to top, #000000cc, #00000066);
-            padding: 10px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 100;
-        }
-        .audio-selector {
-            background: #1e1e1e;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        .audio-selector:hover {
-            background: #ffcc00;
-            color: black;
-        }
-        .info {
-            color: #aaa;
-            font-size: 12px;
-        }
-        .error {
-            color: #ff6666;
-            text-align: center;
-            padding: 20px;
-        }
-        @media (max-width: 768px) {
-            .controls-bar { padding: 8px 12px; }
-            .audio-selector { padding: 6px 12px; font-size: 12px; }
-        }
+        body { background: #0a0a0a; font-family: 'Segoe UI', Arial, sans-serif; display: flex; flex-direction: column; height: 100vh; }
+        .video-container { flex: 1; background: #000; position: relative; }
+        video { width: 100%; height: 100%; object-fit: contain; }
+        .controls-bar { background: linear-gradient(to top, #000000cc, #00000066); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; }
+        .audio-buttons, .subs-buttons { display: flex; gap: 10px; }
+        .ctrl-btn { background: #1e1e1e; color: white; border: none; padding: 8px 20px; border-radius: 30px; cursor: pointer; font-size: 14px; font-weight: bold; transition: all 0.2s; }
+        .ctrl-btn:hover { background: #333; }
+        .ctrl-btn.active { background: #ffcc00; color: black; box-shadow: 0 0 10px rgba(255,204,0,0.5); }
+        .info, .status { color: #aaa; font-size: 12px; }
+        .status { color: #ffcc00; }
+        .error { color: #ff6666; text-align: center; padding: 20px; }
+        @media (max-width: 768px) { .controls-bar { padding: 8px 12px; flex-direction: column; } .ctrl-btn { padding: 6px 16px; font-size: 12px; } }
     </style>
 </head>
 <body>
     <div class="video-container">
-        <video id="videoPlayer" width="100%" height="100%" controls controlslist="nodownload">
+        <video id="videoPlayer" width="100%" height="100%" controls controlslist="nodownload" crossorigin="anonymous">
             Tu navegador no soporta videos HTML5.
+            <track label="Español" kind="subtitles" srclang="es" id="subsEs" default>
+            <track label="English" kind="subtitles" srclang="en" id="subsEn">
         </video>
     </div>
     <div class="controls-bar">
-        <div class="info">
-            🎬 <span id="statusText">Cargando video...</span>
-        </div>
-        <div>
-            <select id="audioTrackSelect" class="audio-selector" style="display: none;">
-                <option value="">🔊 Seleccionar idioma...</option>
-            </select>
-        </div>
-    </div>
-
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        let videoUrl = urlParams.get('url');
-        
-        if (!videoUrl) {
-            document.querySelector('.video-container').innerHTML = '<div class="error">❌ Error: No se especificó URL del video</div>';
-            document.getElementById('statusText').textContent = 'Error: sin URL';
-        } else {
-            videoUrl = decodeURIComponent(videoUrl);
-            const video = document.getElementById('videoPlayer');
-            const audioSelect = document.getElementById('audioTrackSelect');
-            const statusSpan = document.getElementById('statusText');
-            
-            // Configurar el video
-            video.preload = 'auto';
-            video.crossOrigin = 'anonymous'; // Permitir acceso a las pistas
-            
-            // Cargar el video
-            const source = document.createElement('source');
-            source.src = videoUrl;
-            source.type = 'video/mp4';
-            video.appendChild(source);
-            video.load();
-            
-            // Variable para almacenar las pistas de audio
-            let audioTracks = [];
-            
-            // Cuando el video está listo, obtener las pistas de audio
-            video.addEventListener('loadedmetadata', function() {
-                statusSpan.textContent = 'Video cargado. Detectando idiomas...';
-                
-                // Obtener pistas de audio
-                if (video.audioTracks) {
-                    audioTracks = Array.from(video.audioTracks);
-                    
-                    if (audioTracks.length > 1) {
-                        // Múltiples pistas disponibles
-                        audioSelect.style.display = 'block';
-                        audioSelect.innerHTML = '<option value="">🔊 Seleccionar idioma...</option>';
-                        
-                        audioTracks.forEach((track, index) => {
-                            const option = document.createElement('option');
-                            option.value = index;
-                            
-                            // Determinar el nombre del idioma
-                            let langName = track.language || `Pista ${index + 1}`;
-                            let label = track.label || '';
-                            
-                            // Mapear códigos de idioma comunes
-                            const langMap = {
-                                'es': '🇪🇸 Español',
-                                'en': '🇬🇧 English',
-                                'pt': '🇵🇹 Português',
-                                'fr': '🇫🇷 Français',
-                                'de': '🇩🇪 Deutsch',
-                                'it': '🇮🇹 Italiano',
-                                'ja': '🇯🇵 日本語',
-                                'zh': '🇨🇳 中文',
-                                'ru': '🇷🇺 Русский',
-                                'ko': '🇰🇷 한국어'
-                            };
-                            
-                            let displayName = langMap[track.language] || langName;
-                            if (label) displayName += ` (${label})`;
-                            
-                            option.textContent = displayName;
-                            option.title = `Pista ${index + 1}${track.language ? ` - ${track.language.toUpperCase()}` : ''}`;
-                            audioSelect.appendChild(option);
-                        });
-                        
-                        statusSpan.textContent = `${audioTracks.length} idiomas disponibles ✓`;
-                    } else if (audioTracks.length === 1) {
-                        statusSpan.textContent = `Idioma: ${audioTracks[0].language || 'único'}`;
-                    } else {
-                        statusSpan.textContent = 'Video cargado (sin selector de audio)';
-                    }
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Reproductor Multiaudio</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            background: #0a0a0a;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-        .video-container {
-            flex: 1;
-            background: #000;
-            position: relative;
-        }
-        video {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-        .controls-bar {
-            background: linear-gradient(to top, #000000cc, #00000066);
-            padding: 12px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 100;
-        }
-        .audio-buttons {
-            display: flex;
-            gap: 10px;
-        }
-        .audio-btn {
-            background: #1e1e1e;
-            color: white;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 30px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-            transition: all 0.2s;
-        }
-        .audio-btn:hover {
-            background: #333;
-        }
-        .audio-btn.active {
-            background: #ffcc00;
-            color: black;
-            box-shadow: 0 0 10px rgba(255,204,0,0.5);
-        }
-        .info {
-            color: #aaa;
-            font-size: 12px;
-        }
-        .status {
-            color: #ffcc00;
-            font-size: 12px;
-        }
-        .error {
-            color: #ff6666;
-            text-align: center;
-            padding: 20px;
-        }
-        @media (max-width: 768px) {
-            .controls-bar { padding: 8px 12px; flex-direction: column; }
-            .audio-btn { padding: 6px 16px; font-size: 12px; }
-        }
-    </style>
-</head>
-<body>
-    <div class="video-container">
-        <video id="videoPlayer" width="100%" height="100%" controls controlslist="nodownload">
-            Tu navegador no soporta videos HTML5.
-        </video>
-    </div>
-    <div class="controls-bar">
-        <div class="info">
-            🎬 <span id="statusText">Cargando video...</span>
-        </div>
+        <div class="info">🎬 <span id="statusText">Cargando video...</span></div>
         <div class="audio-buttons" id="audioButtons">
-            <button id="btnEspanol" class="audio-btn">🇪🇸 Español</button>
-            <button id="btnIngles" class="audio-btn">🇬🇧 English</button>
+            <button id="btnEspanol" class="ctrl-btn">🇪🇸 Español</button>
+            <button id="btnIngles" class="ctrl-btn">🇬🇧 English</button>
         </div>
-        <div class="status" id="audioStatus">
-            🔊 Audio actual: --
+        <div class="subs-buttons" id="subsButtons">
+            <button id="btnSubsEsp" class="ctrl-btn">📄 Subtítulos: ES</button>
+            <button id="btnSubsOff" class="ctrl-btn">🚫 Sin subtítulos</button>
         </div>
+        <div class="status" id="audioStatus">🔊 Audio: --</div>
     </div>
 
     <script>
@@ -270,71 +55,49 @@
             const audioStatus = document.getElementById('audioStatus');
             const btnEspanol = document.getElementById('btnEspanol');
             const btnIngles = document.getElementById('btnIngles');
+            const btnSubsEsp = document.getElementById('btnSubsEsp');
+            const btnSubsOff = document.getElementById('btnSubsOff');
             
-            let currentAudioTrack = null;
-            
-            // Configurar el video
+            // --- MEJORAS ANTI-DESFASE Y CORS ---
             video.preload = 'auto';
-            
-            // Cargar el video
+            video.crossOrigin = 'anonymous'; // Atributo CLAVE para intentar pedir permisos CORS [citation:1][citation:6]
+
+            // Configurar el video
             const source = document.createElement('source');
             source.src = videoUrl;
             source.type = 'video/mp4';
             video.appendChild(source);
             video.load();
             
-            // Variable para guardar las pistas de audio (si las detecta)
+            // --- LÓGICA PARA SELECCIONAR AUDIO ---
             let audioTracks = [];
             
-            // Método 1: Intentar detección automática (si el servidor lo permite)
             video.addEventListener('loadedmetadata', function() {
-                statusSpan.textContent = 'Video cargado';
-                
+                statusSpan.textContent = 'Video cargado. Intentando detectar pistas...';
                 if (video.audioTracks && video.audioTracks.length > 0) {
                     audioTracks = Array.from(video.audioTracks);
-                    
-                    // Intentar identificar idiomas
-                    audioTracks.forEach((track, idx) => {
-                        const lang = track.language || '';
-                        if (lang === 'es') {
+                    statusSpan.textContent = `${audioTracks.length} pista(s) de audio detectada(s).`;
+                    // Intentar seleccionar la pista en español si existe
+                    for (let i = 0; i < audioTracks.length; i++) {
+                        if (audioTracks[i].language === 'es') {
+                            audioTracks[i].enabled = true;
                             btnEspanol.classList.add('active');
-                            currentAudioTrack = 'español';
                             audioStatus.textContent = '🔊 Audio actual: Español';
-                        } else if (lang === 'en') {
-                            if (!currentAudioTrack) btnIngles.classList.add('active');
+                        } else {
+                            audioTracks[i].enabled = false;
                         }
-                        console.log(`Pista detectada: ${lang} - enabled: ${track.enabled}`);
-                    });
+                    }
                 } else {
-                    statusSpan.textContent += ' (selector manual)';
+                    statusSpan.textContent += ' (Detección automática no disponible)';
+                    audioStatus.textContent = '⚠️ Usa los botones para cambiar audio (puede no funcionar).';
                 }
             });
             
-            // Método 2: Selector manual de audio usando ffmpeg-style URL parameters
-            // Cargar dos versiones del video con diferentes pistas de audio
-            // Esto requiere que el servidor soporte 'audio_track' como parámetro
-            
-            let videoWithSpanish = null;
-            let videoWithEnglish = null;
-            
-            // Función para cambiar el audio recargando el video con un parámetro
             function cambiarAudio(idioma) {
-                let newUrl = videoUrl;
-                
-                // Intentar método 1: parámetro audio_track (algunos servidores lo soportan)
-                if (idioma === 'es') {
-                    newUrl = videoUrl + (videoUrl.includes('?') ? '&' : '?') + 'audio_track=spa';
-                } else if (idioma === 'en') {
-                    newUrl = videoUrl + (videoUrl.includes('?') ? '&' : '?') + 'audio_track=eng';
-                }
-                
-                // Método 2: cambiar mediante la API de audioTracks si está disponible
                 if (video.audioTracks && video.audioTracks.length >= 2) {
-                    // Deshabilitar todas las pistas
                     for (let i = 0; i < video.audioTracks.length; i++) {
                         video.audioTracks[i].enabled = false;
                     }
-                    // Habilitar la seleccionada
                     if (idioma === 'es' && video.audioTracks[0]) {
                         video.audioTracks[0].enabled = true;
                         audioStatus.textContent = '🔊 Audio actual: Español (vía API)';
@@ -342,37 +105,11 @@
                         video.audioTracks[1].enabled = true;
                         audioStatus.textContent = '🔊 Audio actual: English (vía API)';
                     }
-                    return;
+                } else {
+                    audioStatus.textContent = `⚠️ No se pudo cambiar el audio. El navegador no detecta las pistas.`;
                 }
-                
-                // Si no funciona la API, recargamos el video con la nueva URL
-                statusSpan.textContent = `Cambiando a ${idioma === 'es' ? 'Español' : 'Inglés'}...`;
-                
-                // Guardar el tiempo actual
-                const currentTime = video.currentTime;
-                
-                // Crear nueva fuente
-                const newSource = document.createElement('source');
-                newSource.src = newUrl;
-                newSource.type = 'video/mp4';
-                
-                // Limpiar y recargar
-                while (video.firstChild) {
-                    video.removeChild(video.firstChild);
-                }
-                video.appendChild(newSource);
-                video.load();
-                
-                // Restaurar el tiempo cuando esté listo
-                video.addEventListener('canplay', function onCanPlay() {
-                    video.currentTime = currentTime;
-                    video.removeEventListener('canplay', onCanPlay);
-                    statusSpan.textContent = 'Video cargado';
-                    audioStatus.textContent = `🔊 Audio actual: ${idioma === 'es' ? 'Español' : 'English'}`;
-                });
             }
             
-            // Eventos de botones
             btnEspanol.addEventListener('click', () => {
                 btnEspanol.classList.add('active');
                 btnIngles.classList.remove('active');
@@ -385,29 +122,48 @@
                 cambiarAudio('en');
             });
             
-            // Manejo de errores
+            // --- LÓGICA PARA SELECCIONAR SUBTÍTULOS ---
+            // Primero, necesitamos crear tracks de subtítulos en el código [citation:5]
+            // Añadimos tracks de subtítulos vacíos que luego llenaremos.
+            let trackList = video.textTracks;
+            
+            btnSubsEsp.addEventListener('click', () => {
+                for (let i = 0; i < trackList.length; i++) {
+                    trackList[i].mode = 'disabled';
+                }
+                // Buscar el track en español (el que creamos en el HTML)
+                if (trackList.length > 0 && trackList[0].language === 'es') {
+                    trackList[0].mode = 'showing';
+                    audioStatus.textContent = '🔊 Subtítulos: Español activados';
+                } else {
+                    audioStatus.textContent = '⚠️ No se encontraron subtítulos en español para mostrar.';
+                }
+            });
+            
+            btnSubsOff.addEventListener('click', () => {
+                for (let i = 0; i < trackList.length; i++) {
+                    trackList[i].mode = 'disabled';
+                }
+                audioStatus.textContent = '🔊 Subtítulos desactivados';
+            });
+            
+            // --- MANEJO DE ERRORES Y ESTADO ---
             video.onerror = function(e) {
                 console.error('Error en el video:', video.error);
                 let errorMsg = 'Error desconocido';
                 switch(video.error?.code) {
                     case 1: errorMsg = 'Carga del video cancelada'; break;
-                    case 2: errorMsg = 'Error de red al cargar el video'; break;
+                    case 2: errorMsg = 'Error de red. ¿El enlace ha expirado?'; break;
                     case 3: errorMsg = 'Error al decodificar el video'; break;
                     case 4: errorMsg = 'Formato de video no soportado'; break;
                 }
                 statusSpan.textContent = `❌ ${errorMsg}`;
+                document.querySelector('.video-container').innerHTML += `<div class="error">❌ ${errorMsg}<br><small>URL: ${videoUrl.substring(0, 80)}...</small></div>`;
             };
             
             video.addEventListener('canplay', () => {
                 statusSpan.textContent = 'Listo para reproducir ✓';
             });
-            
-            // Mostrar mensaje informativo
-            setTimeout(() => {
-                if (!video.audioTracks || video.audioTracks.length === 0) {
-                    audioStatus.textContent = '⚠️ Usa los botones para cambiar audio';
-                }
-            }, 2000);
         }
     </script>
 </body>
