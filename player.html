@@ -2,42 +2,54 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Reproductor Avanzado</title>
+    <title>Reproductor Avanzado - Kosmi</title>
     <style>
-        /* (Estilos generales - puedes copiarlos del código anterior) */
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #0a0a0a; font-family: 'Segoe UI', Arial, sans-serif; display: flex; flex-direction: column; height: 100vh; }
+        body { background: #0a0a0a; font-family: 'Segoe UI', Arial, sans-serif; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
         .video-container { flex: 1; background: #000; position: relative; }
         video { width: 100%; height: 100%; object-fit: contain; }
-        .controls-bar { background: linear-gradient(to top, #000000cc, #00000066); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; }
-        .audio-buttons, .subs-buttons { display: flex; gap: 10px; }
-        .ctrl-btn { background: #1e1e1e; color: white; border: none; padding: 8px 20px; border-radius: 30px; cursor: pointer; font-size: 14px; font-weight: bold; transition: all 0.2s; }
+        
+        .controls-bar {
+            background: linear-gradient(to top, #000000ee, #00000099);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            z-index: 100;
+        }
+        
+        .ctrl-btn {
+            background: #1e1e1e;
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
         .ctrl-btn:hover { background: #333; }
-        .ctrl-btn.active { background: #ffcc00; color: black; box-shadow: 0 0 10px rgba(255,204,0,0.5); }
-        .info, .status { color: #aaa; font-size: 12px; }
+        .ctrl-btn.active { background: #ffcc00; color: black; font-weight: bold; }
+        
+        .info, .status { color: #aaa; font-size: 13px; }
         .status { color: #ffcc00; }
-        .error { color: #ff6666; text-align: center; padding: 20px; }
-        @media (max-width: 768px) { .controls-bar { padding: 8px 12px; flex-direction: column; } .ctrl-btn { padding: 6px 16px; font-size: 12px; } }
+        .error { color: #ff6666; padding: 20px; text-align: center; }
     </style>
 </head>
 <body>
     <div class="video-container">
-        <video id="videoPlayer" width="100%" height="100%" controls controlslist="nodownload" crossorigin="anonymous">
-            Tu navegador no soporta videos HTML5.
-            <track label="Español" kind="subtitles" srclang="es" id="subsEs" default>
-            <track label="English" kind="subtitles" srclang="en" id="subsEn">
+        <video id="videoPlayer" controls crossorigin="anonymous" playsinline>
+            Tu navegador no soporta video HTML5.
         </video>
     </div>
+
     <div class="controls-bar">
-        <div class="info">🎬 <span id="statusText">Cargando video...</span></div>
-        <div class="audio-buttons" id="audioButtons">
-            <button id="btnEspanol" class="ctrl-btn">🇪🇸 Español</button>
-            <button id="btnIngles" class="ctrl-btn">🇬🇧 English</button>
-        </div>
-        <div class="subs-buttons" id="subsButtons">
-            <button id="btnSubsEsp" class="ctrl-btn">📄 Subtítulos: ES</button>
-            <button id="btnSubsOff" class="ctrl-btn">🚫 Sin subtítulos</button>
-        </div>
+        <div class="info">🎬 <span id="statusText">Cargando...</span></div>
+        
+        <div id="audioButtons" style="display:flex; gap:8px;"></div>
+        
         <div class="status" id="audioStatus">🔊 Audio: --</div>
     </div>
 
@@ -46,125 +58,86 @@
         let videoUrl = urlParams.get('url');
         
         if (!videoUrl) {
-            document.querySelector('.video-container').innerHTML = '<div class="error">❌ Error: No se especificó URL del video</div>';
-            document.getElementById('statusText').textContent = 'Error: sin URL';
-        } else {
-            videoUrl = decodeURIComponent(videoUrl);
-            const video = document.getElementById('videoPlayer');
-            const statusSpan = document.getElementById('statusText');
-            const audioStatus = document.getElementById('audioStatus');
-            const btnEspanol = document.getElementById('btnEspanol');
-            const btnIngles = document.getElementById('btnIngles');
-            const btnSubsEsp = document.getElementById('btnSubsEsp');
-            const btnSubsOff = document.getElementById('btnSubsOff');
-            
-            // --- MEJORAS ANTI-DESFASE Y CORS ---
-            video.preload = 'auto';
-            video.crossOrigin = 'anonymous'; // Atributo CLAVE para intentar pedir permisos CORS [citation:1][citation:6]
-
-            // Configurar el video
-            const source = document.createElement('source');
-            source.src = videoUrl;
-            source.type = 'video/mp4';
-            video.appendChild(source);
-            video.load();
-            
-            // --- LÓGICA PARA SELECCIONAR AUDIO ---
-            let audioTracks = [];
-            
-            video.addEventListener('loadedmetadata', function() {
-                statusSpan.textContent = 'Video cargado. Intentando detectar pistas...';
-                if (video.audioTracks && video.audioTracks.length > 0) {
-                    audioTracks = Array.from(video.audioTracks);
-                    statusSpan.textContent = `${audioTracks.length} pista(s) de audio detectada(s).`;
-                    // Intentar seleccionar la pista en español si existe
-                    for (let i = 0; i < audioTracks.length; i++) {
-                        if (audioTracks[i].language === 'es') {
-                            audioTracks[i].enabled = true;
-                            btnEspanol.classList.add('active');
-                            audioStatus.textContent = '🔊 Audio actual: Español';
-                        } else {
-                            audioTracks[i].enabled = false;
-                        }
-                    }
-                } else {
-                    statusSpan.textContent += ' (Detección automática no disponible)';
-                    audioStatus.textContent = '⚠️ Usa los botones para cambiar audio (puede no funcionar).';
-                }
-            });
-            
-            function cambiarAudio(idioma) {
-                if (video.audioTracks && video.audioTracks.length >= 2) {
-                    for (let i = 0; i < video.audioTracks.length; i++) {
-                        video.audioTracks[i].enabled = false;
-                    }
-                    if (idioma === 'es' && video.audioTracks[0]) {
-                        video.audioTracks[0].enabled = true;
-                        audioStatus.textContent = '🔊 Audio actual: Español (vía API)';
-                    } else if (idioma === 'en' && video.audioTracks[1]) {
-                        video.audioTracks[1].enabled = true;
-                        audioStatus.textContent = '🔊 Audio actual: English (vía API)';
-                    }
-                } else {
-                    audioStatus.textContent = `⚠️ No se pudo cambiar el audio. El navegador no detecta las pistas.`;
-                }
-            }
-            
-            btnEspanol.addEventListener('click', () => {
-                btnEspanol.classList.add('active');
-                btnIngles.classList.remove('active');
-                cambiarAudio('es');
-            });
-            
-            btnIngles.addEventListener('click', () => {
-                btnIngles.classList.add('active');
-                btnEspanol.classList.remove('active');
-                cambiarAudio('en');
-            });
-            
-            // --- LÓGICA PARA SELECCIONAR SUBTÍTULOS ---
-            // Primero, necesitamos crear tracks de subtítulos en el código [citation:5]
-            // Añadimos tracks de subtítulos vacíos que luego llenaremos.
-            let trackList = video.textTracks;
-            
-            btnSubsEsp.addEventListener('click', () => {
-                for (let i = 0; i < trackList.length; i++) {
-                    trackList[i].mode = 'disabled';
-                }
-                // Buscar el track en español (el que creamos en el HTML)
-                if (trackList.length > 0 && trackList[0].language === 'es') {
-                    trackList[0].mode = 'showing';
-                    audioStatus.textContent = '🔊 Subtítulos: Español activados';
-                } else {
-                    audioStatus.textContent = '⚠️ No se encontraron subtítulos en español para mostrar.';
-                }
-            });
-            
-            btnSubsOff.addEventListener('click', () => {
-                for (let i = 0; i < trackList.length; i++) {
-                    trackList[i].mode = 'disabled';
-                }
-                audioStatus.textContent = '🔊 Subtítulos desactivados';
-            });
-            
-            // --- MANEJO DE ERRORES Y ESTADO ---
-            video.onerror = function(e) {
-                console.error('Error en el video:', video.error);
-                let errorMsg = 'Error desconocido';
-                switch(video.error?.code) {
-                    case 1: errorMsg = 'Carga del video cancelada'; break;
-                    case 2: errorMsg = 'Error de red. ¿El enlace ha expirado?'; break;
-                    case 3: errorMsg = 'Error al decodificar el video'; break;
-                    case 4: errorMsg = 'Formato de video no soportado'; break;
-                }
-                statusSpan.textContent = `❌ ${errorMsg}`;
-                document.querySelector('.video-container').innerHTML += `<div class="error">❌ ${errorMsg}<br><small>URL: ${videoUrl.substring(0, 80)}...</small></div>`;
-            };
-            
-            video.addEventListener('canplay', () => {
-                statusSpan.textContent = 'Listo para reproducir ✓';
-            });
+            document.querySelector('.video-container').innerHTML = '<div class="error">❌ No se especificó URL del video</div>';
+            return;
         }
+
+        videoUrl = decodeURIComponent(videoUrl);
+        const video = document.getElementById('videoPlayer');
+        const statusText = document.getElementById('statusText');
+        const audioStatus = document.getElementById('audioStatus');
+        const audioButtons = document.getElementById('audioButtons');
+
+        video.src = videoUrl;
+        video.preload = 'metadata';
+
+        // === Detectar pistas de audio ===
+        function detectAudioTracks() {
+            audioButtons.innerHTML = '';
+            
+            if (video.audioTracks && video.audioTracks.length > 0) {
+                statusText.textContent = `${video.audioTracks.length} pista(s) de audio detectada(s)`;
+                
+                Array.from(video.audioTracks).forEach((track, index) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'ctrl-btn';
+                    btn.textContent = `${track.language ? track.language.toUpperCase() : 'Track'} ${index + 1} ${track.label || ''}`;
+                    btn.dataset.index = index;
+                    
+                    btn.addEventListener('click', () => {
+                        // Desactivar todas
+                        Array.from(video.audioTracks).forEach(t => t.enabled = false);
+                        // Activar la seleccionada
+                        video.audioTracks[index].enabled = true;
+                        
+                        document.querySelectorAll('#audioButtons .ctrl-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        
+                        audioStatus.textContent = `🔊 Audio: ${track.language || 'Track ' + (index+1)}`;
+                    });
+                    
+                    audioButtons.appendChild(btn);
+                    
+                    // Activar la primera por defecto (o buscar español)
+                    if (index === 0 || (track.language && track.language.includes('es'))) {
+                        track.enabled = true;
+                        btn.classList.add('active');
+                        audioStatus.textContent = `🔊 Audio: ${track.language || 'Principal'}`;
+                    }
+                });
+            } else {
+                statusText.textContent = 'Video cargado (detección de pistas limitada)';
+                audioStatus.textContent = '⚠️ Este navegador no detecta múltiples pistas de audio en MP4';
+                
+                // Botón fallback
+                const fallback = document.createElement('button');
+                fallback.className = 'ctrl-btn';
+                fallback.textContent = '🔊 Cambiar Audio (limitado)';
+                fallback.onclick = () => alert('La detección de múltiples audios no está soportada en este navegador.\n\nPrueba en Safari o usa HLS.');
+                audioButtons.appendChild(fallback);
+            }
+        }
+
+        // Eventos
+        video.addEventListener('loadedmetadata', () => {
+            statusText.textContent = 'Metadata cargada ✓';
+            detectAudioTracks();
+        });
+
+        video.addEventListener('canplay', () => {
+            statusText.textContent = 'Listo para reproducir';
+        });
+
+        video.onerror = (e) => {
+            console.error('Video error:', video.error);
+            let msg = 'Error al cargar video';
+            if (video.error?.code === 2) msg = 'Error de red (¿enlace expirado?)';
+            if (video.error?.code === 4) msg = 'Formato no soportado';
+            statusText.textContent = `❌ ${msg}`;
+        };
+
+        // Intentar detectar también después de load
+        video.addEventListener('loadeddata', detectAudioTracks);
     </script>
 </body>
 </html>
