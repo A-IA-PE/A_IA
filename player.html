@@ -2,142 +2,66 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Reproductor Avanzado - Kosmi</title>
+    <title>Reproductor Video.js - Kosmi</title>
+    <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #0a0a0a; font-family: 'Segoe UI', Arial, sans-serif; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
-        .video-container { flex: 1; background: #000; position: relative; }
-        video { width: 100%; height: 100%; object-fit: contain; }
-        
-        .controls-bar {
-            background: linear-gradient(to top, #000000ee, #00000099);
-            padding: 12px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-            z-index: 100;
-        }
-        
-        .ctrl-btn {
-            background: #1e1e1e;
-            color: white;
-            border: none;
-            padding: 8px 18px;
-            border-radius: 30px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s;
-        }
-        .ctrl-btn:hover { background: #333; }
-        .ctrl-btn.active { background: #ffcc00; color: black; font-weight: bold; }
-        
-        .info, .status { color: #aaa; font-size: 13px; }
-        .status { color: #ffcc00; }
-        .error { color: #ff6666; padding: 20px; text-align: center; }
+        body, html { margin:0; padding:0; height:100%; background:#000; overflow:hidden; }
+        .video-js { width: 100vw; height: 100vh; }
+        .vjs-control-bar { background: rgba(0,0,0,0.7) !important; }
     </style>
 </head>
 <body>
-    <div class="video-container">
-        <video id="videoPlayer" controls crossorigin="anonymous" playsinline>
-            Tu navegador no soporta video HTML5.
-        </video>
-    </div>
 
-    <div class="controls-bar">
-        <div class="info">🎬 <span id="statusText">Cargando...</span></div>
-        
-        <div id="audioButtons" style="display:flex; gap:8px;"></div>
-        
-        <div class="status" id="audioStatus">🔊 Audio: --</div>
-    </div>
+    <video id="my-player" class="video-js vjs-big-play-centered" controls preload="auto" crossorigin="anonymous" playsinline></video>
 
+    <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        let videoUrl = urlParams.get('url');
-        
+        const videoUrl = urlParams.get('url') ? decodeURIComponent(urlParams.get('url')) : null;
+
         if (!videoUrl) {
-            document.querySelector('.video-container').innerHTML = '<div class="error">❌ No se especificó URL del video</div>';
-            return;
+            document.body.innerHTML = `<div style="color:red;padding:50px;text-align:center;">❌ No se encontró URL del video</div>`;
         }
 
-        videoUrl = decodeURIComponent(videoUrl);
-        const video = document.getElementById('videoPlayer');
-        const statusText = document.getElementById('statusText');
-        const audioStatus = document.getElementById('audioStatus');
-        const audioButtons = document.getElementById('audioButtons');
-
-        video.src = videoUrl;
-        video.preload = 'metadata';
-
-        // === Detectar pistas de audio ===
-        function detectAudioTracks() {
-            audioButtons.innerHTML = '';
-            
-            if (video.audioTracks && video.audioTracks.length > 0) {
-                statusText.textContent = `${video.audioTracks.length} pista(s) de audio detectada(s)`;
-                
-                Array.from(video.audioTracks).forEach((track, index) => {
-                    const btn = document.createElement('button');
-                    btn.className = 'ctrl-btn';
-                    btn.textContent = `${track.language ? track.language.toUpperCase() : 'Track'} ${index + 1} ${track.label || ''}`;
-                    btn.dataset.index = index;
-                    
-                    btn.addEventListener('click', () => {
-                        // Desactivar todas
-                        Array.from(video.audioTracks).forEach(t => t.enabled = false);
-                        // Activar la seleccionada
-                        video.audioTracks[index].enabled = true;
-                        
-                        document.querySelectorAll('#audioButtons .ctrl-btn').forEach(b => b.classList.remove('active'));
-                        btn.classList.add('active');
-                        
-                        audioStatus.textContent = `🔊 Audio: ${track.language || 'Track ' + (index+1)}`;
-                    });
-                    
-                    audioButtons.appendChild(btn);
-                    
-                    // Activar la primera por defecto (o buscar español)
-                    if (index === 0 || (track.language && track.language.includes('es'))) {
-                        track.enabled = true;
-                        btn.classList.add('active');
-                        audioStatus.textContent = `🔊 Audio: ${track.language || 'Principal'}`;
-                    }
-                });
-            } else {
-                statusText.textContent = 'Video cargado (detección de pistas limitada)';
-                audioStatus.textContent = '⚠️ Este navegador no detecta múltiples pistas de audio en MP4';
-                
-                // Botón fallback
-                const fallback = document.createElement('button');
-                fallback.className = 'ctrl-btn';
-                fallback.textContent = '🔊 Cambiar Audio (limitado)';
-                fallback.onclick = () => alert('La detección de múltiples audios no está soportada en este navegador.\n\nPrueba en Safari o usa HLS.');
-                audioButtons.appendChild(fallback);
-            }
-        }
-
-        // Eventos
-        video.addEventListener('loadedmetadata', () => {
-            statusText.textContent = 'Metadata cargada ✓';
-            detectAudioTracks();
+        const player = videojs('my-player', {
+            techOrder: ['html5'],
+            html5: {
+                vhs: { overrideNative: true }
+            },
+            controlBar: {
+                audioTrackButton: true,   // Intenta mostrar botón de audio
+                fullscreenToggle: true,
+                pictureInPictureToggle: true
+            },
+            playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 2],
+            fluid: true
         });
 
-        video.addEventListener('canplay', () => {
-            statusText.textContent = 'Listo para reproducir';
+        player.src({
+            src: videoUrl,
+            type: 'video/mp4'
         });
 
-        video.onerror = (e) => {
-            console.error('Video error:', video.error);
-            let msg = 'Error al cargar video';
-            if (video.error?.code === 2) msg = 'Error de red (¿enlace expirado?)';
-            if (video.error?.code === 4) msg = 'Formato no soportado';
-            statusText.textContent = `❌ ${msg}`;
-        };
+        // Mostrar información de pistas
+        player.ready(() => {
+            console.log("Player cargado");
 
-        // Intentar detectar también después de load
-        video.addEventListener('loadeddata', detectAudioTracks);
+            player.on('loadedmetadata', () => {
+                const audioTracks = player.audioTracks();
+                console.log('Pistas de audio detectadas:', audioTracks.length);
+
+                if (audioTracks.length > 1) {
+                    console.log('Múltiples pistas disponibles (mejor en Safari)');
+                } else {
+                    console.log('Solo una pista de audio detectada o no soportada por el navegador');
+                }
+            });
+        });
+
+        // Opcional: Botón manual si no aparece el nativo
+        player.on('audiotrackchange', () => {
+            console.log('Audio cambiado');
+        });
     </script>
 </body>
 </html>
