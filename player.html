@@ -2,66 +2,67 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Reproductor Video.js - Kosmi</title>
-    <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
+    <title>Reproductor Kosmi</title>
     <style>
-        body, html { margin:0; padding:0; height:100%; background:#000; overflow:hidden; }
-        .video-js { width: 100vw; height: 100vh; }
-        .vjs-control-bar { background: rgba(0,0,0,0.7) !important; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        video {
+            width: 100%;
+            height: 100vh;
+            object-fit: contain;
+        }
+        .error {
+            color: #ff6666;
+            text-align: center;
+            padding: 20px;
+            font-family: monospace;
+        }
     </style>
 </head>
 <body>
+    <video id="videoPlayer" width="100%" height="100%" controls autoplay></video>
 
-    <video id="my-player" class="video-js vjs-big-play-centered" controls preload="auto" crossorigin="anonymous" playsinline></video>
-
-    <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        const videoUrl = urlParams.get('url') ? decodeURIComponent(urlParams.get('url')) : null;
-
+        let videoUrl = urlParams.get('url');
+        
         if (!videoUrl) {
-            document.body.innerHTML = `<div style="color:red;padding:50px;text-align:center;">❌ No se encontró URL del video</div>`;
-        }
-
-        const player = videojs('my-player', {
-            techOrder: ['html5'],
-            html5: {
-                vhs: { overrideNative: true }
-            },
-            controlBar: {
-                audioTrackButton: true,   // Intenta mostrar botón de audio
-                fullscreenToggle: true,
-                pictureInPictureToggle: true
-            },
-            playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 2],
-            fluid: true
-        });
-
-        player.src({
-            src: videoUrl,
-            type: 'video/mp4'
-        });
-
-        // Mostrar información de pistas
-        player.ready(() => {
-            console.log("Player cargado");
-
-            player.on('loadedmetadata', () => {
-                const audioTracks = player.audioTracks();
-                console.log('Pistas de audio detectadas:', audioTracks.length);
-
-                if (audioTracks.length > 1) {
-                    console.log('Múltiples pistas disponibles (mejor en Safari)');
-                } else {
-                    console.log('Solo una pista de audio detectada o no soportada por el navegador');
-                }
+            document.body.innerHTML = '<div class="error">❌ Error: No se especificó URL del video</div>';
+        } else {
+            videoUrl = decodeURIComponent(videoUrl);
+            const video = document.getElementById('videoPlayer');
+            
+            // Método más simple y compatible
+            video.src = videoUrl;
+            video.load();
+            
+            // Auto reproducción con manejo de errores
+            video.play().catch(e => {
+                console.log("Auto reproducción bloqueada, el usuario debe dar clic");
+                // Mostrar mensaje amigable
+                const msg = document.createElement('div');
+                msg.style.cssText = 'position:fixed;bottom:20px;left:0;right:0;text-align:center;color:#aaa;background:#000000aa;padding:10px;font-family:sans-serif';
+                msg.textContent = '🎬 Haz clic en el video para reproducir';
+                document.body.appendChild(msg);
+                setTimeout(() => msg.remove(), 3000);
             });
-        });
-
-        // Opcional: Botón manual si no aparece el nativo
-        player.on('audiotrackchange', () => {
-            console.log('Audio cambiado');
-        });
+            
+            // Manejo de errores
+            video.onerror = function() {
+                const errorMsg = video.error ? 
+                    (video.error.code === 2 ? 'Error de red. El enlace puede haber expirado.' :
+                     video.error.code === 4 ? 'Formato no soportado.' :
+                     'Error al cargar el video.') : 'Error desconocido.';
+                document.body.innerHTML = `<div class="error">❌ ${errorMsg}<br><small>URL: ${videoUrl.substring(0, 80)}...</small></div>`;
+            };
+        }
     </script>
 </body>
 </html>
