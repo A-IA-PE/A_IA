@@ -30,6 +30,7 @@
         <div class="tab" data-tab="series">📺 Series</div>
         <div class="tab" data-tab="envivo">🔴 EN VIVO</div>
         <div class="tab" data-tab="noticias">📰 Noticias</div>
+        <div class="tab" data-tab="actrices">🎭 Actrices</div>
     </div>
 
     <!-- Sección Películas -->
@@ -88,6 +89,25 @@
  
             <button id="agregarNoticia">Agregar Noticia</button> 
         </div>
+        <!-- Sección Actrices -->
+<div id="seccion-actrices" class="seccion">
+    <h2>Lista de Actrices</h2>
+    <div id="listaActrices"></div>
+    
+    <h3>➕ Añadir Actriz</h3>
+    <input type="text" id="actrizNombre" placeholder="Nombre de la actriz">
+    <input type="text" id="actrizPortada" placeholder="URL de la imagen de portada">
+    <input type="text" id="actrizDescripcion" placeholder="Descripción breve (opcional)">
+    <button id="agregarActriz">Agregar Actriz</button>
+    
+    <div id="editandoActriz" style="display:none; background:#444; padding:10px; margin-top:20px; border-radius:8px;">
+        <h4>Editando: <span id="editandoNombre"></span></h4>
+        <div id="videosContainer"></div>
+        <button id="agregarVideo">+ Agregar Video</button>
+        <button id="guardarActriz">💾 Guardar cambios</button>
+        <button id="cancelarEdicion" style="background:#666;">Cancelar</button>
+    </div>
+</div>
 
 <script>
     let githubToken = '';
@@ -160,7 +180,8 @@
         seriesActuales.forEach((s, i) => {
             div.innerHTML += `<div class="item-list">${s.titulo} 
                 <button onclick="editarSerie(${i})">✏️ Editar</button>
-                <button onclick="eliminarSerie(${i})">❌</button></div>`;
+                <button onclick="eliminarSerie(${i})">❌</button>
+                </div>`;
         });
     }
     window.editarSerie = (idx) => {
@@ -280,6 +301,140 @@ document.getElementById('agregarNoticia').onclick = async () => {
     });
     if(await saveJSON('noticias.json', noticias)) { mostrarStatus('Noticia agregada'); cargarNoticias(); }
 };
+    // ========== ACTRICES ==========
+let actricesActuales = [];
+let editandoActrizId = null;
+
+async function cargarActrices() {
+    const actrices = await fetchJSON('actrices.json');
+    actricesActuales = actrices;
+    const div = document.getElementById('listaActrices');
+    if (!actrices.length) { div.innerHTML = '<p>No hay actrices registradas</p>'; return; }
+    div.innerHTML = '';
+    actrices.forEach((a, i) => {
+        const totalVids = a.videos ? a.videos.length : 0;
+        div.innerHTML += `<div class="item-list">🎭 ${a.nombre} (${totalVids} videos) 
+            <button onclick="editarActriz(${i})">✏️ Editar</button>
+            <button onclick="eliminarActriz(${i})">❌</button></div>`;
+    });
+}
+
+window.editarActriz = (idx) => {
+    editandoActrizId = idx;
+    const actriz = actricesActuales[idx];
+    document.getElementById('editandoActriz').style.display = 'block';
+    document.getElementById('editandoNombre').innerText = actriz.nombre;
+    renderVideos(actriz);
+};
+
+function renderVideos(actriz) {
+    const container = document.getElementById('videosContainer');
+    container.innerHTML = '';
+    if (!actriz.videos || actriz.videos.length === 0) {
+        container.innerHTML = '<p style="color:#aaa;">No hay videos. Usa el botón "+ Agregar Video".</p>';
+        return;
+    }
+    actriz.videos.forEach((video, vIdx) => {
+        const videoDiv = document.createElement('div');
+        videoDiv.className = 'campo-array';
+        videoDiv.style.marginBottom = '10px';
+        videoDiv.style.padding = '10px';
+        videoDiv.style.background = '#2a2a2a';
+        videoDiv.style.borderRadius = '8px';
+        videoDiv.innerHTML = `
+            <input type="text" id="video-titulo-${vIdx}" value="${escapeHTML(video.titulo)}" placeholder="Título del video" style="width:100%; margin-bottom:5px;">
+            <input type="text" id="video-url-${vIdx}" value="${escapeHTML(video.videoUrl)}" placeholder="URL del video" style="width:100%; margin-bottom:5px;">
+            <button onclick="eliminarVideo(${vIdx})" style="background:#c62828; width:auto; padding:5px 10px;">❌ Eliminar video</button>
+        `;
+        container.appendChild(videoDiv);
+    });
+}
+
+window.eliminarVideo = (vIdx) => {
+    const actriz = actricesActuales[editandoActrizId];
+    actriz.videos.splice(vIdx, 1);
+    renderVideos(actriz);
+};
+
+document.getElementById('agregarVideo').onclick = () => {
+    const actriz = actricesActuales[editandoActrizId];
+    if (!actriz.videos) actriz.videos = [];
+    actriz.videos.push({ titulo: "Nuevo video", videoUrl: "" });
+    renderVideos(actriz);
+};
+
+document.getElementById('guardarActriz').onclick = async () => {
+    const actriz = actricesActuales[editandoActrizId];
+    // Guardar los títulos y URLs editados
+    for (let i = 0; i < actriz.videos.length; i++) {
+        const tituloInput = document.getElementById(`video-titulo-${i}`);
+        const urlInput = document.getElementById(`video-url-${i}`);
+        if (tituloInput) actriz.videos[i].titulo = tituloInput.value;
+        if (urlInput) actriz.videos[i].videoUrl = urlInput.value;
+    }
+    if (await saveJSON('actrices.json', actricesActuales)) {
+        mostrarStatus('Actriz actualizada');
+        cargarActrices();
+        document.getElementById('editandoActriz').style.display = 'none';
+        editandoActrizId = null;
+    } else {
+        mostrarStatus('Error al guardar', true);
+    }
+};
+
+document.getElementById('cancelarEdicion').onclick = () => {
+    document.getElementById('editandoActriz').style.display = 'none';
+    editandoActrizId = null;
+    cargarActrices();
+};
+
+window.eliminarActriz = async (idx) => {
+    if (confirm(`¿Eliminar a "${actricesActuales[idx].nombre}"?`)) {
+        actricesActuales.splice(idx, 1);
+        if (await saveJSON('actrices.json', actricesActuales)) {
+            mostrarStatus('Actriz eliminada');
+            cargarActrices();
+        } else {
+            mostrarStatus('Error al eliminar', true);
+        }
+    }
+};
+
+document.getElementById('agregarActriz').onclick = async () => {
+    const nombre = document.getElementById('actrizNombre').value.trim();
+    const portada = document.getElementById('actrizPortada').value.trim();
+    const descripcion = document.getElementById('actrizDescripcion').value.trim();
+    if (!nombre || !portada) {
+        mostrarStatus('Nombre y portada son obligatorios', true);
+        return;
+    }
+    let actrices = await fetchJSON('actrices.json');
+    actrices.push({
+        id: Date.now(),
+        nombre: nombre,
+        portada: portada,
+        descripcion: descripcion || '',
+        videos: []
+    });
+    if (await saveJSON('actrices.json', actrices)) {
+        mostrarStatus('Actriz agregada');
+        document.getElementById('actrizNombre').value = '';
+        document.getElementById('actrizPortada').value = '';
+        document.getElementById('actrizDescripcion').value = '';
+        cargarActrices();
+    } else {
+        mostrarStatus('Error al guardar', true);
+    }
+    function escapeHTML(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
+};
 
     // Tabs
     document.querySelectorAll('.tab').forEach(tab => {
@@ -292,6 +447,7 @@ document.getElementById('agregarNoticia').onclick = async () => {
             if(tab.dataset.tab === 'series') cargarSeries();
             if(tab.dataset.tab === 'envivo') cargarCanales();
             if(tab.dataset.tab === 'noticias') cargarNoticias();
+            if(tab.dataset.tab === 'actrices') cargarActrices();
         };
     });
 
