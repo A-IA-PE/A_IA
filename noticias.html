@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Noticias - Cine Rave</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background: #0a0a0a; color: #fff; }
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #1a1a2e);
+            padding: 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .back-btn {
+            position: absolute;
+            left: 20px;
+            top: 20px;
+            background: rgba(0,0,0,0.5);
+            padding: 8px 16px;
+            border-radius: 20px;
+            text-decoration: none;
+            color: white;
+        }
+        .back-btn:hover { background: rgba(0,0,0,0.7); }
+        .header h1 { margin-bottom: 5px; }
+        .header p { color: #aaa; font-size: 14px; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .noticia {
+            background: #1e1e1e;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.2s;
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+            display: block;
+        }
+        .noticia:hover { transform: scale(1.02); background: #2a2a2a; }
+        .noticia img {
+            width: 100%;
+            aspect-ratio: 16/9;
+            object-fit: cover;
+        }
+        .titulo { padding: 12px; text-align: center; font-weight: bold; font-size: 14px; }
+        .fecha {
+            text-align: center;
+            font-size: 11px;
+            color: #ffcc00;
+            margin-top: -5px;
+            margin-bottom: 10px;
+        }
+        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+        .badge {
+            background: #ff4444;
+            display: inline-block;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-top: 5px;
+        }
+        @media (max-width: 768px) {
+            .grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+            .titulo { font-size: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="cine.html" class="back-btn">← Volver</a>
+        <h1>📰 Noticias</h1>
+        <p>Información actualizada - Reportajes y más</p>
+    </div>
+    <div class="grid" id="listaNoticias"></div>
+    <div class="footer">
+        Cine Rave - Contenido informativo
+    </div>
+
+    <script>
+        async function cargarNoticias() {
+            try {
+                const res = await fetch('datos/noticias.json?t=' + Date.now());
+                if (!res.ok) throw new Error('No se pudo cargar');
+                const noticias = await res.json();
+                const grid = document.getElementById('listaNoticias');
+                grid.innerHTML = '';
+                
+                if (noticias.length === 0) {
+                    grid.innerHTML = '<p style="text-align:center; grid-column:1/-1;">📭 No hay noticias aún. Ve al panel de administración.</p>';
+                    return;
+                }
+                
+                noticias.forEach(noticia => {
+                    const card = document.createElement('a');
+                    card.href = `player.html?url=${encodeURIComponent(noticia.videoUrl)}`;
+                    card.className = 'noticia';
+                    card.innerHTML = `
+                        <img src="${noticia.portada}" alt="${noticia.titulo}" onerror="this.src='https://via.placeholder.com/280x158?text=Sin+imagen'">
+                        <div class="titulo">${escapeHTML(noticia.titulo)}</div>
+                        <div class="fecha">${noticia.fecha || 'Fecha no disponible'}</div>
+                        ${noticia.categoria ? `<div class="badge" style="display:block;text-align:center;">${escapeHTML(noticia.categoria)}</div>` : ''}
+                    `;
+                    grid.appendChild(card);
+                });
+            } catch(e) {
+                document.getElementById('listaNoticias').innerHTML = '<p style="text-align:center; grid-column:1/-1;">❌ Error al cargar noticias. Verifica la conexión.</p>';
+            }
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        cargarNoticias();
+    </script>
+</body>
+</html>
