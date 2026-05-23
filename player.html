@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Reproductor Kosmi</title>
+    <title>Reproductor Mejorado</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -11,57 +11,152 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            overflow: hidden;
+            font-family: 'Segoe UI', Arial, sans-serif;
         }
         video {
             width: 100%;
             height: 100vh;
             object-fit: contain;
         }
-        .error {
-            color: #ff6666;
+        .error-container {
             text-align: center;
             padding: 20px;
-            font-family: monospace;
+            max-width: 90%;
+            background: #1a1a1a;
+            border-radius: 12px;
+            border-left: 4px solid #ff4444;
+        }
+        .error-title {
+            color: #ff6666;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+        .error-message {
+            color: #ccc;
+            margin-bottom: 10px;
+            word-break: break-all;
+        }
+        .error-url {
+            color: #888;
+            font-size: 12px;
+            background: #2a2a2a;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 15px;
+            word-break: break-all;
+        }
+        .retry-btn {
+            background: #ffcc00;
+            color: #1a1a1a;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            margin-top: 15px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .info {
+            position: fixed;
+            bottom: 10px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: #666;
+            font-size: 11px;
+            background: #000000aa;
+            padding: 5px;
         }
     </style>
 </head>
 <body>
-    <video id="videoPlayer" width="100%" height="100%" controls autoplay></video>
+    <div id="container" style="width:100%;height:100vh;">
+        <video id="videoPlayer" width="100%" height="100%" controls autoplay></video>
+    </div>
+    <div class="info">🎬 Cine Rave - Si el video no carga, verifica que el enlace sea válido</div>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         let videoUrl = urlParams.get('url');
         
+        function mostrarError(mensaje, detalles = '') {
+            const container = document.getElementById('container');
+            container.innerHTML = `
+                <div style="display:flex;justify-content:center;align-items:center;height:100vh;">
+                    <div class="error-container">
+                        <div class="error-title">❌ ${mensaje}</div>
+                        <div class="error-message">No se pudo cargar el video</div>
+                        ${detalles ? `<div class="error-message" style="font-size:14px;">${detalles}</div>` : ''}
+                        <div class="error-url">URL: ${videoUrl ? videoUrl.substring(0, 100) : 'No especificada'}${videoUrl && videoUrl.length > 100 ? '...' : ''}</div>
+                        <button class="retry-btn" onclick="location.reload()">⟳ Intentar de nuevo</button>
+                    </div>
+                </div>
+            `;
+        }
+
         if (!videoUrl) {
-            document.body.innerHTML = '<div class="error">❌ Error: No se especificó URL del video</div>';
+            mostrarError('Error: No se especificó URL del video', 'El enlace al video está vacío');
         } else {
-            videoUrl = decodeURIComponent(videoUrl);
-            const video = document.getElementById('videoPlayer');
+            // Decodificar la URL correctamente
+            try {
+                videoUrl = decodeURIComponent(videoUrl);
+            } catch(e) {
+                console.log('URL ya decodificada o error al decodificar');
+            }
             
-            // Método más simple y compatible
+            const video = document.getElementById('videoPlayer');
+            let errorTimeout;
+            
+            // Configurar el video
             video.src = videoUrl;
             video.load();
             
-            // Auto reproducción con manejo de errores
-            video.play().catch(e => {
-                console.log("Auto reproducción bloqueada, el usuario debe dar clic");
-                // Mostrar mensaje amigable
-                const msg = document.createElement('div');
-                msg.style.cssText = 'position:fixed;bottom:20px;left:0;right:0;text-align:center;color:#aaa;background:#000000aa;padding:10px;font-family:sans-serif';
-                msg.textContent = '🎬 Haz clic en el video para reproducir';
-                document.body.appendChild(msg);
-                setTimeout(() => msg.remove(), 3000);
+            // Timeout para carga lenta (10 segundos)
+            errorTimeout = setTimeout(() => {
+                if (video.readyState === 0) {
+                    mostrarError('Error: El video no carga', 'El servidor tardó demasiado en responder. El enlace puede haber expirado.');
+                }
+            }, 10000);
+            
+            // Manejo de errores del video
+            video.onerror = function() {
+                clearTimeout(errorTimeout);
+                let errorMsg = 'Error desconocido';
+                let errorDetail = '';
+                
+                switch(video.error?.code) {
+                    case 1:
+                        errorMsg = 'Carga cancelada';
+                        errorDetail = 'La reproducción fue cancelada.';
+                        break;
+                    case 2:
+                        errorMsg = 'Error de red';
+                        errorDetail = 'No se pudo conectar al servidor. El enlace puede haber expirado o el servidor no responde.';
+                        break;
+                    case 3:
+                        errorMsg = 'Error al decodificar';
+                        errorDetail = 'El video está dañado o el formato no es compatible.';
+                        break;
+                    case 4:
+                        errorMsg = 'Formato no soportado';
+                        errorDetail = 'El navegador no puede reproducir este formato de video.';
+                        break;
+                    default:
+                        errorDetail = `Código de error: ${video.error?.code || 'desconocido'}`;
+                }
+                
+                mostrarError(errorMsg, errorDetail);
+            };
+            
+            video.addEventListener('canplay', () => {
+                clearTimeout(errorTimeout);
+                console.log('Video cargado correctamente');
             });
             
-            // Manejo de errores
-            video.onerror = function() {
-                const errorMsg = video.error ? 
-                    (video.error.code === 2 ? 'Error de red. El enlace puede haber expirado.' :
-                     video.error.code === 4 ? 'Formato no soportado.' :
-                     'Error al cargar el video.') : 'Error desconocido.';
-                document.body.innerHTML = `<div class="error">❌ ${errorMsg}<br><small>URL: ${videoUrl.substring(0, 80)}...</small></div>`;
-            };
+            // Intento automático de reproducción
+            video.play().catch(e => {
+                console.log('Auto reproducción bloqueada');
+                // No mostramos error, solo esperamos que el usuario haga clic
+            });
         }
     </script>
 </body>
