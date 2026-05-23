@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Videos - Cine Rave</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background: #0a0a0a; color: #fff; }
+        .header {
+            background: linear-gradient(135deg, #9b59b6, #6c3483);
+            padding: 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .back-btn {
+            position: absolute;
+            left: 20px;
+            top: 20px;
+            background: rgba(0,0,0,0.5);
+            padding: 8px 16px;
+            border-radius: 20px;
+            text-decoration: none;
+            color: white;
+        }
+        .back-btn:hover { background: rgba(0,0,0,0.7); }
+        .perfil {
+            display: flex;
+            gap: 30px;
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 0 20px;
+            flex-wrap: wrap;
+        }
+        .perfil-img {
+            width: 250px;
+            border-radius: 16px;
+            aspect-ratio: 2/3;
+            object-fit: cover;
+        }
+        .perfil-info {
+            flex: 1;
+        }
+        .perfil-info h2 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            color: #9b59b6;
+        }
+        .perfil-info p {
+            color: #aaa;
+            margin-bottom: 20px;
+        }
+        .videos-list {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .video-item {
+            background: #1e1e1e;
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .video-title {
+            flex: 1;
+            font-weight: bold;
+        }
+        .video-play {
+            background: #9b59b6;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+        .video-play:hover {
+            background: #8e44ad;
+        }
+        .footer { text-align: center; padding: 20px; color: #666; }
+        @media (max-width: 768px) {
+            .perfil { justify-content: center; text-align: center; }
+            .video-item { flex-direction: column; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="actrices.html" class="back-btn">← Volver</a>
+        <h1>🎭 Videos</h1>
+        <p>Presentaciones y contenido</p>
+    </div>
+    <div id="contenido"></div>
+    <div class="footer">Cine Rave - Contenido cultural</div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const actrizId = urlParams.get('id');
+
+        async function cargarActriz() {
+            if (!actrizId) {
+                document.getElementById('contenido').innerHTML = '<p style="text-align:center; padding:50px;">❌ ID no especificado</p>';
+                return;
+            }
+
+            try {
+                const res = await fetch('datos/actrices.json?t=' + Date.now());
+                if (!res.ok) throw new Error();
+                const actrices = await res.json();
+                const actriz = actrices.find(a => a.id == actrizId);
+
+                if (!actriz) {
+                    document.getElementById('contenido').innerHTML = '<p style="text-align:center; padding:50px;">❌ Actriz no encontrada</p>';
+                    return;
+                }
+
+                const videos = actriz.videos || [];
+                
+                let html = `
+                    <div class="perfil">
+                        <img src="${actriz.portada}" class="perfil-img" onerror="this.src='https://via.placeholder.com/250x375?text=Sin+imagen'">
+                        <div class="perfil-info">
+                            <h2>${escapeHTML(actriz.nombre)}</h2>
+                            <p>${escapeHTML(actriz.descripcion || 'Presentaciones y videos informativos')}</p>
+                            <div>📹 Total de videos: ${videos.length}</div>
+                        </div>
+                    </div>
+                    <div class="videos-list">
+                        <h3 style="margin-bottom:20px;">Lista de videos</h3>
+                `;
+
+                if (videos.length === 0) {
+                    html += '<p style="color:#888;">No hay videos disponibles para esta actriz.</p>';
+                } else {
+                    videos.forEach((video, idx) => {
+                        html += `
+                            <div class="video-item">
+                                <span class="video-title">${idx + 1}. ${escapeHTML(video.titulo)}</span>
+                                <a href="player.html?url=${encodeURIComponent(video.videoUrl)}" class="video-play">▶ Reproducir</a>
+                            </div>
+                        `;
+                    });
+                }
+
+                html += `</div>`;
+                document.getElementById('contenido').innerHTML = html;
+            } catch(e) {
+                document.getElementById('contenido').innerHTML = '<p style="text-align:center; padding:50px;">❌ Error al cargar los datos</p>';
+            }
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        cargarActriz();
+    </script>
+</body>
+</html>
