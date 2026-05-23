@@ -29,6 +29,7 @@
         <div class="tab activo" data-tab="peliculas">🎬 Películas</div>
         <div class="tab" data-tab="series">📺 Series</div>
         <div class="tab" data-tab="envivo">🔴 EN VIVO</div>
+        <div class="tab" data-tab="noticias">📰 Noticias</div>
     </div>
 
     <!-- Sección Películas -->
@@ -55,9 +56,7 @@
             <div id="temporadasContainer"></div>
             <button id="agregarTemporada">+ Agregar Temporada</button>
             <button id="guardarSerie">Guardar cambios de serie</button>
-        </div>
     </div>
-
     <!-- Sección EN VIVO -->
     <div id="seccion-envivo" class="seccion">
         <h2>Lista de Canales EN VIVO</h2>
@@ -67,8 +66,28 @@
         <input type="text" id="canalLogo" placeholder="URL del logo">
         <input type="text" id="canalVideo" placeholder="URL del stream (m3u8 o mp4)">
         <button id="agregarCanal">Agregar Canal</button>
-    </div>
-</div>
+    </div>   
+        <!-- Sección Noticias -->
+
+        <div id="seccion-noticias" class="seccion">   
+            <h2>Lista de Noticias</h2>
+   
+            <div id="listaNoticias"></div>
+  
+            <h3>➕ Añadir Noticia</h3>
+  
+            <input type="text" id="notiTitulo" placeholder="Título de la noticia">
+  
+            <input type="text" id="notiPortada" placeholder="URL de la imagen de portada (16:9)">
+  
+            <input type="text" id="notiVideo" placeholder="URL del video">
+ 
+            <input type="text" id="notiFecha" placeholder="Fecha (ej: 15 Mayo 2026)">
+  
+            <input type="text" id="notiCategoria" placeholder="Categoría (ej: Internacional, Política, Deportes)">
+ 
+            <button id="agregarNoticia">Agregar Noticia</button> 
+        </div>
 
 <script>
     let githubToken = '';
@@ -226,6 +245,42 @@
         if(await saveJSON('envivo.json', canales)) { mostrarStatus('Canal agregado'); cargarCanales(); }
     };
 
+    // Noticias
+    async function cargarNoticias() {
+    const noticias = await fetchJSON('noticias.json');
+    const div = document.getElementById('listaNoticias');
+    if (!noticias.length) { div.innerHTML = '<p>No hay noticias</p>'; return; }
+    div.innerHTML = '';
+    noticias.forEach((n, i) => {
+        div.innerHTML += `<div class="item-list">${n.titulo} (${n.fecha || 'sin fecha'}) <button onclick="eliminarNoticia(${i})">❌</button></div>`;
+    });
+}
+
+window.eliminarNoticia = async (idx) => {
+    let noticias = await fetchJSON('noticias.json');
+    noticias.splice(idx,1);
+    if(await saveJSON('noticias.json', noticias)) { mostrarStatus('Eliminada'); cargarNoticias(); }
+};
+
+document.getElementById('agregarNoticia').onclick = async () => {
+    const titulo = document.getElementById('notiTitulo').value;
+    const portada = document.getElementById('notiPortada').value;
+    const video = document.getElementById('notiVideo').value;
+    const fecha = document.getElementById('notiFecha').value;
+    const categoria = document.getElementById('notiCategoria').value;
+    if(!titulo || !portada || !video) { mostrarStatus('Completa campos obligatorios',true); return; }
+    let noticias = await fetchJSON('noticias.json');
+    noticias.push({ 
+        id: Date.now(), 
+        titulo, 
+        portada, 
+        videoUrl: video, 
+        fecha: fecha || new Date().toLocaleDateString('es-ES'),
+        categoria: categoria || 'General'
+    });
+    if(await saveJSON('noticias.json', noticias)) { mostrarStatus('Noticia agregada'); cargarNoticias(); }
+};
+
     // Tabs
     document.querySelectorAll('.tab').forEach(tab => {
         tab.onclick = () => {
@@ -236,6 +291,7 @@
             if(tab.dataset.tab === 'peliculas') cargarPeliculas();
             if(tab.dataset.tab === 'series') cargarSeries();
             if(tab.dataset.tab === 'envivo') cargarCanales();
+            if(tab.dataset.tab === 'noticias') cargarNoticias();
         };
     });
 
