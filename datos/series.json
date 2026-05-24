@@ -39,6 +39,16 @@
     "id": 1779603029702,
     "titulo": "fumoffu",
     "portada": "https://ww3.animeonline.ninja/wp-content/uploads/2021/12/tSJbYU643iD2VqkPw04vWbvYwBk-500x750.jpg",
-    "temporadas": []
+    "temporadas": [
+      {
+        "capitulos": [
+          {
+            "numero": 1,
+            "titulo": "fumoffu cap2",
+            "videoUrl": "http://ptccloud.lsdwedsfsc.site/vod/C392E534357C4901912466937003ECE9_media.mp4?dev_id=f52157f745278412edf03ea2e51a79fd&user_id=232671742&trans_id=am8rdlqnA5H_4vsy1lOAGeB6&expired=1779617305&app_id=magmob&app_ver=60203&host=ptccloud.lsdwedsfsc.site&media_code=C392E534357C4901912466937003ECE9&auth_id=232671742_magmob__0&client_ip=38.25.4.42&token=a4eccd6d&sign2_method=sign_o3&instance=0&start_moment=1779602942001&sign2=df8929abf8c51e3e5da48d0c5e2a9752"
+          }
+        ]
+      }
+    ]
   }
 ]
