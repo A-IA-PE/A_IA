@@ -2,240 +2,111 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Reproductor Universal</title>
-    <!-- ¡ESTA ETIQUETA ES LA CLAVE! Evita que se envíe la cabecera Referer -->
-    <meta name="referrer" content="no-referrer">
+    <title>Reproductor con Headers Reales</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            background: #000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            font-family: 'Segoe UI', Arial, sans-serif;
-        }
-        .video-container {
-            width: 100%;
-            height: 100vh;
-            position: relative;
-        }
-        video {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-        .error-container {
-            text-align: center;
-            padding: 20px;
-            max-width: 90%;
-            background: #1a1a1a;
-            border-radius: 12px;
-            border-left: 4px solid #ff4444;
-        }
-        .error-title {
-            color: #ff6666;
-            font-size: 24px;
-            margin-bottom: 15px;
-        }
-        .error-message {
-            color: #ccc;
-            margin-bottom: 10px;
-        }
-        .error-url {
-            color: #888;
-            font-size: 11px;
-            background: #2a2a2a;
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 15px;
-            word-break: break-all;
-        }
-        .retry-btn {
-            background: #ffcc00;
-            color: #1a1a1a;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 30px;
-            margin-top: 15px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        .info {
-            position: fixed;
-            bottom: 10px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            color: #666;
-            font-size: 11px;
-            background: #000000aa;
-            padding: 5px;
-            z-index: 100;
-        }
-        .loading {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-size: 14px;
-            background: rgba(0,0,0,0.7);
-            padding: 10px 20px;
-            border-radius: 30px;
-            z-index: 200;
-        }
+        body { background: #000; display: flex; justify-content: center; align-items: center; min-height: 100vh; font-family: monospace; }
+        video { width: 100%; height: 100vh; object-fit: contain; }
+        .error-container { text-align: center; padding: 20px; background: #1a1a1a; border-radius: 12px; max-width: 90%; }
+        .error-title { color: #ff6666; font-size: 24px; }
+        .error-url { color: #888; font-size: 11px; word-break: break-all; margin-top: 15px; }
+        .loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; background: rgba(0,0,0,0.7); padding: 10px 20px; border-radius: 30px; z-index: 200; }
+        .info { position: fixed; bottom: 10px; left: 0; right: 0; text-align: center; color: #666; font-size: 11px; background: #000000aa; padding: 5px; }
     </style>
 </head>
 <body>
     <div class="video-container" id="container">
         <video id="videoPlayer" width="100%" height="100%" controls></video>
     </div>
-    <div class="info">🎬 Cine Rave - Modo incógnito (sin referer)</div>
+    <div class="info">🎬 Headers reales inyectados</div>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         let videoUrl = urlParams.get('url');
         
+        // ========== HEADERS CAPTURADOS DE CHROME ==========
+        // Estos son los valores que capturaste
+        const CUSTOM_HEADERS = {
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+            'Accept-Encoding': 'gzip, deflate, br, zstd',
+            'Accept-Language': 'es-PE,es;q=0.9,en-PE;q=0.8,en-US;q=0.7,en;q=0.6',
+            'Connection': 'keep-alive',
+            'sec-ch-ua': '"Chromium";v="148", "Android WebView";v="148", "Not/A)Brand";v="99"',
+            'sec-ch-ua-mobile': '?1',
+            'sec-ch-ua-platform': '"Android"',
+            'Sec-Fetch-Site': 'none',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-User': '?1',
+            'Sec-Fetch-Dest': 'document',
+            'Upgrade-Insecure-Requests': '1',
+            'User-Agent': 'Mozilla/5.0 (Linux; Android 13; NTH-NX9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.7778.121 Mobile Safari/537.36',
+            'x-requested-with': ''
+        };
+        // =================================================
+        
         function mostrarError(mensaje, detalles = '') {
-            const container = document.getElementById('container');
-            container.innerHTML = `
+            document.getElementById('container').innerHTML = `
                 <div style="display:flex;justify-content:center;align-items:center;height:100vh;">
                     <div class="error-container">
                         <div class="error-title">❌ ${mensaje}</div>
-                        <div class="error-message">No se pudo cargar el video</div>
-                        ${detalles ? `<div class="error-message" style="font-size:14px;">${detalles}</div>` : ''}
-                        <div class="error-url">URL: ${videoUrl ? videoUrl.substring(0, 100) : 'No especificada'}${videoUrl && videoUrl.length > 100 ? '...' : ''}</div>
-                        <button class="retry-btn" onclick="location.reload()">⟳ Intentar de nuevo</button>
+                        <div class="error-url">URL: ${videoUrl ? videoUrl.substring(0, 100) : 'No especificada'}...</div>
+                        <button onclick="location.reload()" style="margin-top:15px;padding:8px 20px;cursor:pointer;">⟳ Reintentar</button>
                     </div>
                 </div>
             `;
         }
 
-        function mostrarLoading() {
-            const container = document.getElementById('container');
+        if (!videoUrl) {
+            mostrarError('No se especificó URL');
+        } else {
+            videoUrl = decodeURIComponent(videoUrl);
+            const video = document.getElementById('videoPlayer');
+            const esHLS = videoUrl.includes('.m3u8');
+            
+            // Mostrar loading
             const loading = document.createElement('div');
             loading.className = 'loading';
-            loading.id = 'loadingMsg';
-            loading.textContent = '🔄 Cargando video (sin referer)...';
-            container.appendChild(loading);
-        }
-
-        function ocultarLoading() {
-            const loading = document.getElementById('loadingMsg');
-            if (loading) loading.remove();
-        }
-
-        if (!videoUrl) {
-            mostrarError('Error: No se especificó URL del video', 'El enlace al video está vacío');
-        } else {
-            // Decodificar la URL
-            try {
-                videoUrl = decodeURIComponent(videoUrl);
-            } catch(e) {
-                console.log('URL ya decodificada');
-            }
+            loading.textContent = '🔄 Cargando con headers reales...';
+            document.getElementById('container').appendChild(loading);
             
-            const video = document.getElementById('videoPlayer');
-            let hlsInstance = null;
-            
-            // Detectar si es HLS (.m3u8)
-            const esHLS = videoUrl.toLowerCase().endsWith('.m3u8') || videoUrl.includes('.m3u8?');
-            
-            console.log(`Formato detectado: ${esHLS ? 'HLS (.m3u8)' : 'MP4 normal'}`);
-            console.log(`Modo: sin Referer (meta referrer=no-referrer)`);
-            
-            mostrarLoading();
-            
-            if (esHLS) {
-                // ========== REPRODUCCIÓN HLS con HLS.js ==========
-                if (Hls.isSupported()) {
-                    hlsInstance = new Hls({
-                        debug: false,
-                        enableWorker: true,
-                        // No añadimos cabeceras extra para no generar conflictos
-                    });
-                    
-                    hlsInstance.loadSource(videoUrl);
-                    hlsInstance.attachMedia(video);
-                    
-                    hlsInstance.on(Hls.Events.MANIFEST_PARSED, function() {
-                        ocultarLoading();
-                        console.log('Manifest HLS cargado correctamente');
-                        video.play().catch(e => {
-                            console.log('Autoplay bloqueado');
-                            ocultarLoading();
+            if (esHLS && Hls.isSupported()) {
+                const hls = new Hls({
+                    debug: false,
+                    xhrSetup: function(xhr, url) {
+                        // Inyectar TODAS las cabeceras capturadas
+                        Object.keys(CUSTOM_HEADERS).forEach(key => {
+                            xhr.setRequestHeader(key, CUSTOM_HEADERS[key]);
                         });
-                    });
-                    
-                    hlsInstance.on(Hls.Events.ERROR, function(event, data) {
-                        console.error('Error HLS:', data);
-                        ocultarLoading();
-                        
-                        if (data.fatal) {
-                            mostrarError('Error al reproducir HLS', 'El stream .m3u8 no es accesible. El servidor puede estar bloqueando la reproducción externa.');
-                            if (hlsInstance) hlsInstance.destroy();
-                        }
-                    });
-                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                    ocultarLoading();
-                    video.src = videoUrl;
-                    video.addEventListener('loadedmetadata', () => {
-                        video.play().catch(e => console.log('Autoplay bloqueado'));
-                    });
-                } else {
-                    ocultarLoading();
-                    mostrarError('Formato no soportado', 'Tu navegador no puede reproducir streams HLS (.m3u8).');
-                }
-            } else {
-                // ========== REPRODUCCIÓN MP4 NATIVA ==========
+                        console.log('Headers inyectados:', CUSTOM_HEADERS);
+                    }
+                });
+                
+                hls.loadSource(videoUrl);
+                hls.attachMedia(video);
+                
+                hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                    loading.remove();
+                    console.log('Manifest HLS cargado');
+                    video.play().catch(e => console.log('Autoplay bloqueado:', e));
+                });
+                
+                hls.on(Hls.Events.ERROR, (_, data) => {
+                    console.error('Error HLS:', data);
+                    loading.remove();
+                    if (data.fatal) {
+                        mostrarError('Error HLS', 'El servidor rechazó la petición. Verifica los headers.');
+                    }
+                });
+            } else if (esHLS && video.canPlayType('application/vnd.apple.mpegurl')) {
+                // Safari
+                loading.remove();
                 video.src = videoUrl;
-                video.load();
-                
-                // Timeout para carga lenta (30 segundos para videos largos)
-                let timeout = setTimeout(() => {
-                    if (video.readyState === 0) {
-                        ocultarLoading();
-                        mostrarError('Error de carga', 'El servidor tardó demasiado. El enlace puede haber expirado o el video es muy pesado.');
-                    }
-                }, 30000);
-                
-                video.addEventListener('canplay', () => {
-                    clearTimeout(timeout);
-                    ocultarLoading();
-                    console.log('MP4 cargado correctamente');
-                });
-                
-                video.onerror = function() {
-                    clearTimeout(timeout);
-                    ocultarLoading();
-                    let errorMsg = 'Error desconocido';
-                    let errorDetail = '';
-                    switch(video.error?.code) {
-                        case 1: errorMsg = 'Carga cancelada'; break;
-                        case 2: 
-                            errorMsg = 'Error de red';
-                            errorDetail = 'El servidor bloquea la reproducción externa. Prueba abrir el enlace directamente en Chrome.';
-                            break;
-                        case 3: errorMsg = 'Error al decodificar'; break;
-                        case 4: errorMsg = 'Formato no soportado'; break;
-                    }
-                    mostrarError(errorMsg, errorDetail);
-                };
-                
-                video.addEventListener('loadedmetadata', () => {
-                    ocultarLoading();
-                    video.play().catch(e => {
-                        console.log('Autoplay bloqueado, el usuario debe hacer clic');
-                    });
-                });
+                video.addEventListener('loadedmetadata', () => video.play());
+            } else {
+                loading.remove();
+                mostrarError('Formato no soportado', 'Tu navegador no puede reproducir HLS (.m3u8)');
             }
-            
-            // Limpiar HLS al salir
-            window.addEventListener('beforeunload', () => {
-                if (hlsInstance) hlsInstance.destroy();
-            });
         }
     </script>
 </body>
