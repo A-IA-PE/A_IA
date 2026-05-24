@@ -2,73 +2,245 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Reproductor HLS</title>
+    <title>Reproductor Universal</title>
+    <!-- HLS.js para reproducción de streams .m3u8 -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        body { margin: 0; background: black; }
-        video { width: 100%; height: 100vh; object-fit: contain; }
-        .error {
-            color: #ff6666;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+        .video-container {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+        }
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .error-container {
             text-align: center;
-            padding: 50px;
-            font-family: monospace;
+            padding: 20px;
+            max-width: 90%;
+            background: #1a1a1a;
+            border-radius: 12px;
+            border-left: 4px solid #ff4444;
+        }
+        .error-title {
+            color: #ff6666;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+        .error-message {
+            color: #ccc;
+            margin-bottom: 10px;
+        }
+        .error-url {
+            color: #888;
+            font-size: 11px;
+            background: #2a2a2a;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 15px;
+            word-break: break-all;
+        }
+        .retry-btn {
+            background: #ffcc00;
+            color: #1a1a1a;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            margin-top: 15px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .info {
+            position: fixed;
+            bottom: 10px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: #666;
+            font-size: 11px;
+            background: #000000aa;
+            padding: 5px;
+            z-index: 100;
+        }
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 14px;
+            background: rgba(0,0,0,0.7);
+            padding: 10px 20px;
+            border-radius: 30px;
         }
     </style>
 </head>
 <body>
-    <video id="videoPlayer" width="100%" height="100%" controls></video>
+    <div class="video-container" id="container">
+        <video id="videoPlayer" width="100%" height="100%" controls></video>
+    </div>
+    <div class="info">🎬 Cine Rave - Soporta MP4 y HLS (.m3u8)</div>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         let videoUrl = urlParams.get('url');
         
+        function mostrarError(mensaje, detalles = '') {
+            const container = document.getElementById('container');
+            container.innerHTML = `
+                <div style="display:flex;justify-content:center;align-items:center;height:100vh;">
+                    <div class="error-container">
+                        <div class="error-title">❌ ${mensaje}</div>
+                        <div class="error-message">No se pudo cargar el video</div>
+                        ${detalles ? `<div class="error-message" style="font-size:14px;">${detalles}</div>` : ''}
+                        <div class="error-url">URL: ${videoUrl ? videoUrl.substring(0, 100) : 'No especificada'}${videoUrl && videoUrl.length > 100 ? '...' : ''}</div>
+                        <button class="retry-btn" onclick="location.reload()">⟳ Intentar de nuevo</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function mostrarLoading() {
+            const container = document.getElementById('container');
+            const loading = document.createElement('div');
+            loading.className = 'loading';
+            loading.id = 'loadingMsg';
+            loading.textContent = '🔄 Cargando stream...';
+            container.appendChild(loading);
+        }
+
+        function ocultarLoading() {
+            const loading = document.getElementById('loadingMsg');
+            if (loading) loading.remove();
+        }
+
         if (!videoUrl) {
-            document.body.innerHTML = '<div class="error">❌ Error: No se especificó URL del video</div>';
+            mostrarError('Error: No se especificó URL del video', 'El enlace al video está vacío');
         } else {
-            videoUrl = decodeURIComponent(videoUrl);
+            // Decodificar la URL
+            try {
+                videoUrl = decodeURIComponent(videoUrl);
+            } catch(e) {
+                console.log('URL ya decodificada');
+            }
+            
             const video = document.getElementById('videoPlayer');
+            let hlsInstance = null;
             
             // Detectar si es HLS (.m3u8)
-            if (videoUrl.endsWith('.m3u8') || videoUrl.includes('.m3u8?')) {
+            const esHLS = videoUrl.toLowerCase().endsWith('.m3u8') || videoUrl.includes('.m3u8?');
+            
+            console.log(`Formato detectado: ${esHLS ? 'HLS (.m3u8)' : 'MP4 normal'}`);
+            
+            if (esHLS) {
+                // ========== REPRODUCCIÓN HLS con HLS.js ==========
+                mostrarLoading();
+                
                 if (Hls.isSupported()) {
-                    const hls = new Hls({
+                    hlsInstance = new Hls({
                         debug: false,
                         enableWorker: true,
-                        // Cabeceras adicionales para evitar bloqueos
+                        // Configuración para evitar bloqueos
                         xhrSetup: function(xhr, url) {
-                            // Añadir referer para engañar al servidor
-                            xhr.setRequestHeader('Referer', 'https://be7713.rcr82.waw05.r6n9ed.com/');
-                            xhr.setRequestHeader('Origin', 'https://be7713.rcr82.waw05.r6n9ed.com');
+                            // Añadir cabeceras para simular una petición normal de navegador
+                            xhr.setRequestHeader('Referer', new URL(videoUrl).origin);
+                            xhr.setRequestHeader('Origin', new URL(videoUrl).origin);
+                            xhr.setRequestHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
                         }
                     });
-                    hls.loadSource(videoUrl);
-                    hls.attachMedia(video);
-                    hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                        video.play().catch(e => console.log('Autoplay bloqueado:', e));
+                    
+                    hlsInstance.loadSource(videoUrl);
+                    hlsInstance.attachMedia(video);
+                    
+                    hlsInstance.on(Hls.Events.MANIFEST_PARSED, function() {
+                        ocultarLoading();
+                        console.log('Manifest HLS cargado correctamente');
+                        video.play().catch(e => {
+                            console.log('Autoplay bloqueado por el navegador');
+                            ocultarLoading();
+                        });
                     });
-                    hls.on(Hls.Events.ERROR, function(event, data) {
-                        console.error('HLS Error:', data);
+                    
+                    hlsInstance.on(Hls.Events.ERROR, function(event, data) {
+                        console.error('Error HLS:', data);
+                        ocultarLoading();
+                        
                         if (data.fatal) {
-                            document.body.innerHTML = `<div class="error">❌ Error al cargar el stream HLS.<br><small>El servidor puede estar bloqueando la reproducción.</small></div>`;
+                            switch(data.type) {
+                                case Hls.ErrorTypes.NETWORK_ERROR:
+                                    mostrarError('Error de red', 'No se pudo conectar al servidor. El enlace puede haber expirado.');
+                                    break;
+                                case Hls.ErrorTypes.MEDIA_ERROR:
+                                    mostrarError('Error en el stream', 'El archivo .m3u8 está dañado o no es compatible.');
+                                    break;
+                                default:
+                                    mostrarError('Error al reproducir HLS', 'El servidor puede estar bloqueando la reproducción web.');
+                            }
+                            if (hlsInstance) hlsInstance.destroy();
                         }
                     });
                 } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                    // Safari nativo
+                    // Safari nativo (iOS/macOS)
+                    ocultarLoading();
                     video.src = videoUrl;
-                    video.addEventListener('loadedmetadata', () => video.play());
+                    video.addEventListener('loadedmetadata', () => {
+                        video.play().catch(e => console.log('Autoplay bloqueado'));
+                    });
                 } else {
-                    document.body.innerHTML = '<div class="error">❌ Tu navegador no soporta reproducción HLS</div>';
+                    ocultarLoading();
+                    mostrarError('Formato no soportado', 'Tu navegador no puede reproducir streams HLS (.m3u8).');
                 }
             } else {
-                // MP4 normal
+                // ========== REPRODUCCIÓN MP4 NATIVA ==========
                 video.src = videoUrl;
                 video.load();
-                video.play().catch(e => console.log('Autoplay bloqueado'));
+                
+                // Timeout para carga lenta
+                let timeout = setTimeout(() => {
+                    if (video.readyState === 0) {
+                        mostrarError('Error de carga', 'El servidor tardó demasiado en responder. El enlace puede haber expirado.');
+                    }
+                }, 15000);
+                
+                video.addEventListener('canplay', () => {
+                    clearTimeout(timeout);
+                    console.log('MP4 cargado correctamente');
+                });
+                
+                video.onerror = function() {
+                    clearTimeout(timeout);
+                    let errorMsg = 'Error desconocido';
+                    switch(video.error?.code) {
+                        case 1: errorMsg = 'Carga cancelada'; break;
+                        case 2: errorMsg = 'Error de red. El enlace puede haber expirado.'; break;
+                        case 3: errorMsg = 'Error al decodificar el video'; break;
+                        case 4: errorMsg = 'Formato no soportado'; break;
+                    }
+                    mostrarError(errorMsg, 'El servidor puede estar bloqueando la reproducción.');
+                };
+                
+                video.play().catch(e => {
+                    console.log('Auto reproducción bloqueada por el navegador');
+                    clearTimeout(timeout);
+                    // No mostramos error porque el usuario puede hacer clic manualmente
+                });
             }
             
-            video.onerror = function() {
-                document.body.innerHTML = `<div class="error">❌ Error al cargar el video<br><small>URL: ${videoUrl.substring(0, 80)}...</small></div>`;
-            };
+            // Limpiar HLS al salir
+            window.addEventListener('beforeunload', () => {
+                if (hlsInstance) hlsInstance.destroy();
+            });
         }
     </script>
 </body>
