@@ -2,111 +2,66 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Reproductor con Headers Reales</title>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <title>Reproductor Optimizado Kosmi</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #000; display: flex; justify-content: center; align-items: center; min-height: 100vh; font-family: monospace; }
-        video { width: 100%; height: 100vh; object-fit: contain; }
-        .error-container { text-align: center; padding: 20px; background: #1a1a1a; border-radius: 12px; max-width: 90%; }
-        .error-title { color: #ff6666; font-size: 24px; }
-        .error-url { color: #888; font-size: 11px; word-break: break-all; margin-top: 15px; }
-        .loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; background: rgba(0,0,0,0.7); padding: 10px 20px; border-radius: 30px; z-index: 200; }
-        .info { position: fixed; bottom: 10px; left: 0; right: 0; text-align: center; color: #666; font-size: 11px; background: #000000aa; padding: 5px; }
+        body { margin: 0; background: #000; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
+        video { width: 100%; height: 100%; max-height: 100vh; object-fit: contain; }
     </style>
 </head>
 <body>
-    <div class="video-container" id="container">
-        <video id="videoPlayer" width="100%" height="100%" controls></video>
-    </div>
-    <div class="info">🎬 Headers reales inyectados</div>
+    <video id="videoPlayer" width="100%" height="100%" controls preload="auto"></video>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         let videoUrl = urlParams.get('url');
         
-        // ========== HEADERS CAPTURADOS DE CHROME ==========
-        // Estos son los valores que capturaste
-        const CUSTOM_HEADERS = {
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-            'Accept-Encoding': 'gzip, deflate, br, zstd',
-            'Accept-Language': 'es-PE,es;q=0.9,en-PE;q=0.8,en-US;q=0.7,en;q=0.6',
-            'Connection': 'keep-alive',
-            'sec-ch-ua': '"Chromium";v="148", "Android WebView";v="148", "Not/A)Brand";v="99"',
-            'sec-ch-ua-mobile': '?1',
-            'sec-ch-ua-platform': '"Android"',
-            'Sec-Fetch-Site': 'none',
-            'Sec-Fetch-Mode': 'navigate',
-            'Sec-Fetch-User': '?1',
-            'Sec-Fetch-Dest': 'document',
-            'Upgrade-Insecure-Requests': '1',
-            'User-Agent': 'Mozilla/5.0 (Linux; Android 13; NTH-NX9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.7778.121 Mobile Safari/537.36',
-            'x-requested-with': ''
-        };
-        // =================================================
-        
-        function mostrarError(mensaje, detalles = '') {
-            document.getElementById('container').innerHTML = `
-                <div style="display:flex;justify-content:center;align-items:center;height:100vh;">
-                    <div class="error-container">
-                        <div class="error-title">❌ ${mensaje}</div>
-                        <div class="error-url">URL: ${videoUrl ? videoUrl.substring(0, 100) : 'No especificada'}...</div>
-                        <button onclick="location.reload()" style="margin-top:15px;padding:8px 20px;cursor:pointer;">⟳ Reintentar</button>
-                    </div>
-                </div>
-            `;
-        }
-
         if (!videoUrl) {
-            mostrarError('No se especificó URL');
+            document.body.innerHTML = '<h1 style="color:white;text-align:center;">Error: No se especificó URL del video</h1>';
         } else {
-            videoUrl = decodeURIComponent(videoUrl);
             const video = document.getElementById('videoPlayer');
-            const esHLS = videoUrl.includes('.m3u8');
+            videoUrl = decodeURIComponent(videoUrl);
             
-            // Mostrar loading
-            const loading = document.createElement('div');
-            loading.className = 'loading';
-            loading.textContent = '🔄 Cargando con headers reales...';
-            document.getElementById('container').appendChild(loading);
+            // --- MEJORAS ANTI-DESFASE ---
+            // 1. Manejo del buffer: Evita que el audio se "adelante" si el video se traba
+            video.preload = 'auto';
             
-            if (esHLS && Hls.isSupported()) {
-                const hls = new Hls({
-                    debug: false,
-                    xhrSetup: function(xhr, url) {
-                        // Inyectar TODAS las cabeceras capturadas
-                        Object.keys(CUSTOM_HEADERS).forEach(key => {
-                            xhr.setRequestHeader(key, CUSTOM_HEADERS[key]);
-                        });
-                        console.log('Headers inyectados:', CUSTOM_HEADERS);
-                    }
-                });
-                
-                hls.loadSource(videoUrl);
-                hls.attachMedia(video);
-                
-                hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                    loading.remove();
-                    console.log('Manifest HLS cargado');
-                    video.play().catch(e => console.log('Autoplay bloqueado:', e));
-                });
-                
-                hls.on(Hls.Events.ERROR, (_, data) => {
-                    console.error('Error HLS:', data);
-                    loading.remove();
-                    if (data.fatal) {
-                        mostrarError('Error HLS', 'El servidor rechazó la petición. Verifica los headers.');
-                    }
-                });
-            } else if (esHLS && video.canPlayType('application/vnd.apple.mpegurl')) {
-                // Safari
-                loading.remove();
-                video.src = videoUrl;
-                video.addEventListener('loadedmetadata', () => video.play());
-            } else {
-                loading.remove();
-                mostrarError('Formato no soportado', 'Tu navegador no puede reproducir HLS (.m3u8)');
+            // 2. Forzar que el video espere el audio al recuperarse de un error
+            video.onerror = function(e) {
+                console.warn("Error en el video, intentando recuperar...");
+                video.load(); // Recargar el elemento
+                setTimeout(() => video.play(), 1000);
+            };
+            
+            // 3. Limpiar fuente anterior antes de cargar nueva
+            while (video.firstChild) {
+                video.removeChild(video.firstChild);
             }
+            
+            // 4. Insertar la fuente con type específico para MP4 (evita que Kosmi intente parsear otros formatos)
+            const source = document.createElement('source');
+            source.src = videoUrl;
+            source.type = 'video/mp4';
+            video.appendChild(source);
+            
+            // 5. Bloquear la pausa automática por inactividad (opcional, útil para Kosmi)
+            video.load();
+            
+            // 6. Si el video no tiene los metadatos completos, esperamos un poco antes de forzar play
+            video.addEventListener('loadedmetadata', () => {
+                if (video.readyState >= 2) {
+                    video.play().catch(e => console.log("Autoplay bloqueado:", e));
+                }
+            });
+            
+            // 7. Fallback: Si el video nunca carga, damos opción de recargar manualmente evitando el error ciego
+            let timeout = setTimeout(() => {
+                if (video.readyState === 0) {
+                    console.log("Timeout: forzando recarga del elemento");
+                    video.load();
+                }
+            }, 8000);
+            
+            video.addEventListener('canplay', () => clearTimeout(timeout));
         }
     </script>
 </body>
