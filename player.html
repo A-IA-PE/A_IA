@@ -46,7 +46,7 @@
                 video.onerror = function(e) {
                     console.warn("Error en el video, intentando recuperar...");
                     video.load();
-                    setTimeout(() => video.play(), 1000);
+                    setTimeout(() => video.play(), 2000);
                 };
                 
                 while (video.firstChild) {
@@ -70,7 +70,7 @@
                         console.log("Timeout: forzando recarga");
                         video.load();
                     }
-                }, 8000);
+                }, 10000);
                 
                 video.addEventListener('canplay', () => clearTimeout(timeout));
             }
