@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EDITS HOTS AI | Portafolio Interactivo</title>
+    <title>EDITS AI | Portafolio Interactivo</title>
+    <!-- Script oficial de Telegram Mini Apps -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
-        
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: #050505;
@@ -17,136 +18,86 @@
             position: relative;
             min-height: 100vh;
         }
-
         .background-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(to bottom, rgba(5, 5, 5, 0.6), rgba(5, 5, 5, 0.85)),
-                url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2070&auto=format&fit=crop');
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, rgba(5, 5, 5, 0.6), rgba(5, 5, 5, 0.85)), url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2070&auto=format&fit=crop');
             background-size: cover; background-position: center; z-index: -2;
         }
-
         #snow-canvas {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: -1; 
+            pointer-events: none; z-index: -1;
         }
-
         nav, header, main { position: relative; z-index: 10; }
-
         .glass-card {
-            background: rgba(10, 10, 10, 0.3);
-            backdrop-filter: blur(15px);
+            background: rgba(10, 10, 10, 0.3); backdrop-filter: blur(15px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
-
         .portfolio-card {
-            background: rgba(20, 20, 20, 0.4);
-            backdrop-filter: blur(8px);
-            border-radius: 1.5rem;
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative;
+            background: rgba(20, 20, 20, 0.4); backdrop-filter: blur(8px);
+            border-radius: 1.5rem; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative;
         }
-
         .portfolio-card:hover {
-            transform: translateY(-8px);
-            border-color: #7dd3fc;
+            transform: translateY(-8px); border-color: #7dd3fc;
             box-shadow: 0 15px 40px -10px rgba(125, 211, 252, 0.4);
         }
-
-        /* --- Estilos Slider Antes/Después --- */
         .comparison-slider {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 9/16;
-            overflow: hidden;
-            border-radius: 1rem;
-            cursor: ew-resize;
+            position: relative; width: 100%; aspect-ratio: 9/16;
+            overflow: hidden; border-radius: 1rem; cursor: ew-resize;
         }
-
         .comparison-slider img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            position: absolute;
-            top: 0;
-            left: 0;
-            pointer-events: none;
+            width: 100%; height: 100%; object-fit: cover;
+            position: absolute; top: 0; left: 0; pointer-events: none;
         }
-
-        .img-before {
-            z-index: 2;
-            clip-path: inset(0 50% 0 0);
-        }
-
-        .img-after {
-            z-index: 1;
-        }
-
+        .img-before { z-index: 2; clip-path: inset(0 50% 0 0); }
+        .img-after { z-index: 1; }
         .slider-line {
-            position: absolute;
-            top: 0; bottom: 0; left: 50%; width: 2px;
-            background: #7dd3fc; z-index: 3;
-            pointer-events: none;
+            position: absolute; top: 0; bottom: 0; left: 50%; width: 2px;
+            background: #7dd3fc; z-index: 3; pointer-events: none;
             box-shadow: 0 0 10px rgba(125, 211, 252, 0.8);
         }
-
         .slider-button {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 36px; height: 36px;
-            background: #7dd3fc; border-radius: 50%;
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 36px; height: 36px; background: #7dd3fc; border-radius: 50%;
             z-index: 4; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 15px rgba(125, 211, 252, 0.8);
-            color: #000; font-size: 14px;
+            box-shadow: 0 0 15px rgba(125, 211, 252, 0.8); color: #000; font-size: 14px;
         }
-
         .media-wrapper {
             position: relative; width: 100%; aspect-ratio: 9/16;
             background: transparent; overflow: hidden; padding: 12px;
         }
-
         .media-content {
-            width: 100%; height: 100%; object-fit: contain; 
-            border: none; background: transparent;
-            filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));
+            width: 100%; height: 100%; object-fit: contain; border: none;
+            background: transparent; filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));
         }
-
         .thumbnail-overlay {
             position: absolute; inset: 0; z-index: 20;
             transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease;
             object-fit: cover; width: 100%; height: 100%;
         }
-
-        .portfolio-card:hover .thumbnail-overlay { transform: translateY(-100%); opacity: 0.8; }
-
+        .portfolio-card:hover .thumbnail-overlay {
+            transform: translateY(-100%); opacity: 0.8;
+        }
         .order-btn {
             background: linear-gradient(90deg, #0ea5e9, #6366f1);
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);
+            transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);
+            cursor: pointer;
         }
-
+        .order-btn:active { transform: scale(0.95); }
         .badge {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 4px 10px; border-radius: 6px;
-            font-size: 10px; font-weight: 800; color: #eee;
+            background: rgba(255, 255, 255, 0.1); padding: 4px 10px;
+            border-radius: 6px; font-size: 10px; font-weight: 800; color: #eee;
         }
-        
-        .hover-detector {
-            position: absolute; inset: 0; z-index: 30; cursor: pointer;
-        }
+        .hover-detector { position: absolute; inset: 0; z-index: 30; cursor: pointer; }
     </style>
 </head>
 <body class="antialiased">
-
     <div class="background-overlay"></div>
     <canvas id="snow-canvas"></canvas>
 
     <nav class="sticky top-0 z-50 glass-card border-b border-white/10 px-6 py-4">
         <div class="container mx-auto flex justify-between items-center">
-            <span class="font-black text-xl tracking-tighter uppercase">EDITS <span class="text-sky-400">HOTS</span>AI</span>
+            <span class="font-black text-xl tracking-tighter uppercase">EDITS <span class="text-sky-400">AI</span></span>
             <div class="flex items-center gap-4">
                 <span class="badge italic text-sky-400">FHD</span>
             </div>
@@ -154,17 +105,16 @@
     </nav>
 
     <header class="container mx-auto px-6 pt-12 pb-12 text-center">
-        <h1 class="text-4xl md:text-6xl font-black mb-8 italic uppercase tracking-tighter text-white drop-shadow-2xl">
-            EDICIONES HQ <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-300 to-blue-500"> AI 🐱 </span>
+        <h1 class="text-4xl md:text-6xl font-black mb-8 italic uppercase tracking-tighter text-white drop-shadow-2xl"> 
+            EDICIONES HQ <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-300 to-blue-500"> AI 🐱 </span> 
         </h1>
-        
         <div class="max-w-4xl mx-auto glass-card rounded-2xl p-6 flex flex-col md:flex-row justify-around items-center gap-8 border border-white/20">
             <div class="text-center">
                 <p class="text-[10px] uppercase font-bold text-gray-300 mb-3 tracking-widest">Pago Local Desde 1PEN🇵🇪</p>
                 <div class="flex gap-4 justify-center items-center">
-                   <div class="flex flex-col items-center"><i class="fa-solid fa-mobile-screen text-teal-400 text-xl mb-1"></i> <span class="text-[9px] font-bold">YAPE</span></div>
-                   <div class="flex flex-col items-center"><i class="fa-solid fa-mobile-button text-purple-400 text-xl mb-1"></i> <span class="text-[9px] font-bold">PLIN</span></div>
-                   <div class="flex flex-col items-center"><i class="fa-solid fa-credit-card text-blue-400 text-xl mb-1"></i> <span class="text-[9px] font-bold">PREX</span></div>
+                    <div class="flex flex-col items-center"><i class="fa-solid fa-mobile-screen text-teal-400 text-xl mb-1"></i> <span class="text-[9px] font-bold">YAPE</span></div>
+                    <div class="flex flex-col items-center"><i class="fa-solid fa-mobile-button text-purple-400 text-xl mb-1"></i> <span class="text-[9px] font-bold">PLIN</span></div>
+                    <div class="flex flex-col items-center"><i class="fa-solid fa-credit-card text-blue-400 text-xl mb-1"></i> <span class="text-[9px] font-bold">PREX</span></div>
                 </div>
             </div>
             <div class="h-10 w-px bg-white/20 hidden md:block"></div>
@@ -193,125 +143,82 @@
     </main>
 
     <script>
+        // --- INICIALIZACIÓN DE TELEGRAM MINI APP ---
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand(); // Hace que la app ocupe toda la pantalla
+
         // --- NIEVE DIAGONAL ---
         const canvas = document.getElementById('snow-canvas');
         const ctx = canvas.getContext('2d');
         let width, height, snowflakes = [];
 
         function initSnow() {
-            width = window.innerWidth; height = window.innerHeight;
-            canvas.width = width; canvas.height = height;
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
             snowflakes = [];
             for (let i = 0; i < 150; i++) {
-                snowflakes.push({ x: Math.random() * width, y: Math.random() * height, r: Math.random() * 2 + 0.5, vY: Math.random() * 1.2 + 0.5, vX: -(Math.random() * 0.8 + 0.4) });
+                snowflakes.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    r: Math.random() * 2 + 0.5,
+                    vY: Math.random() * 1.2 + 0.5,
+                    vX: -(Math.random() * 0.8 + 0.4)
+                });
             }
         }
+
         function drawSnow() {
             ctx.clearRect(0, 0, width, height);
             ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
             ctx.beginPath();
-            for (let p of snowflakes) { ctx.moveTo(p.x, p.y); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2, true); }
+            for (let p of snowflakes) {
+                ctx.moveTo(p.x, p.y);
+                ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2, true);
+            }
             ctx.fill();
             for (let p of snowflakes) {
-                p.y += p.vY; p.x += p.vX;
+                p.y += p.vY;
+                p.x += p.vX;
                 if (p.y > height) { p.y = -10; p.x = Math.random() * (width + 100); }
                 if (p.x < -10) { p.x = width + 10; p.y = Math.random() * height; }
             }
             requestAnimationFrame(drawSnow);
         }
+
         window.addEventListener('resize', initSnow);
-        initSnow(); drawSnow();
+        initSnow();
+        drawSnow();
 
-        // --- DATOS SLIDER ---
+        // --- DATOS DE LOS EDITS (Títulos genéricos para que los edites) ---
         const sliderItems = [
-            {
-                title: "undress",
-                before: "https://i.postimg.cc/d1Y25ycW/20251223_115617.jpg", 
-                after: "https://i.postimg.cc/K8GK9hjh/dl_1766557760403_edit_395621745612935.png"
-            },
-            {
-                title: "Cum on Face", 
-                before: "https://i.postimg.cc/kGxgst3C/Screenshot-20260202-132953.jpg", 
-                after: "https://i.postimg.cc/9f3N54sy/dl-1770057258038.png" 
-                
-            }, 
-            {
-                title: "Back photo editing", 
-                before: "https://i.postimg.cc/1Rnbqx5W/20251223_112713.jpg", 
-                after: "https://i.postimg.cc/KzVVHfQw/20251223_112918_edit_388788664414292.jpg" 
-            } 
+            { title: "Título del Edit 1", before: "https://i.postimg.cc/d1Y25ycW/20251223_115617.jpg", after: "https://i.postimg.cc/K8GK9hjh/dl_1766557760403_edit_395621745612935.png" },
+            { title: "Título del Edit 2", before: "https://i.postimg.cc/kGxgst3C/Screenshot-20260202-132953.jpg", after: "https://i.postimg.cc/9f3N54sy/dl-1770057258038.png" },
+            { title: "Título del Edit 3", before: "https://i.postimg.cc/1Rnbqx5W/20251223_112713.jpg", after: "https://i.postimg.cc/KzVVHfQw/20251223_112918_edit_388788664414292.jpg" }
         ];
 
-        // --- DATOS VIDEOS (RESTAURADOS) ---
         const videoItems = [
-            { 
-                videoUrl: 'https://files.catbox.moe/ec5oqu.mp4', 
-                thumbUrl: 'https://i.postimg.cc/bNdvQnWg/IMG_20251221_210451_277.jpg', 
-                title: 'FULL-BODY NAKED' 
-            },
-            { 
-                videoUrl: 'https://files.catbox.moe/knc138.mp4', 
-                thumbUrl: 'https://i.postimg.cc/KvV8QzhP/IMG_20251221_210541_021.jpg', 
-                title: 'Nude Cleaning-Glass' 
-            },
-            { 
-                videoUrl: 'https://files.catbox.moe/yblni8.mp4', 
-                thumbUrl: 'https://i.postimg.cc/KvV8QzhP/IMG_20251221_210541_021.jpg', 
-                title: 'Nude and sexy twist' 
-            },
-            { 
-                videoUrl: 'https://files.catbox.moe/o46quz.mp4', 
-                thumbUrl: 'https://i.postimg.cc/pXydDj4k/IMG_20251221_210528_755.jpg', 
-                title: 'Dog-style Pov-Front' 
-            }, 
-            {
-                videoUrl: 'https://files.catbox.moe/ohvw6v.mp4', 
-                thumbUrl: 'https://i.postimg.cc/dtD08Cp2/IMG_20251221_210422_852.jpg', 
-                title: 'Deep blowjob'
-            }, 
-            {
-                videoUrl: 'https://files.catbox.moe/fjarfb.mp4', 
-                thumbUrl: 'https://i.postimg.cc/fTkbxdpt/IMG_20251221_210414_786.jpg', 
-                title: 'Cum on the face'
-            }, 
-            {
-                videoUrl: 'https://files.catbox.moe/a7bi88.mp4', 
-                thumbUrl: 'https://i.postimg.cc/Gh9pkDVD/IMG_20251221_210435_999.jpg', 
-                title: 'Front view of vagina and anus'
-            }, 
-            {
-                videoUrl: 'https://files.catbox.moe/gmqi64.mp4', 
-                thumbUrl: 'https://i.postimg.cc/L678vXFf/IMG_20251221_210533_183.jpg', 
-                title: 'Rear view of Vagina with cum'
-            },
-            {
-                videoUrl: 'https://files.catbox.moe/ed0gws.mp4', 
-                thumbUrl: 'https://i.postimg.cc/C52HhBDL/Screenshot-20251225-125941.jpg', 
-                title: 'creampie Front view'
-            },
-            {
-                videoUrl: 'https://files.catbox.moe/uav3dw.mp4', 
-                thumbUrl: 'https://i.postimg.cc/154zpF2D/IMG_20251221_210427_445.jpg', 
-                title: 'Sex with leg up'
-            }, 
-            {
-                videoUrl: 'https://files.catbox.moe/cx1du0.mp4', 
-                thumbUrl: 'https://i.postimg.cc/7ZCKpqvS/IMG_20251223_165948_924.jpg', 
-                title: 'Doggy style seen from behind'
-            },
-            {
-                videoUrl: 'https://files.catbox.moe/7mbjob.mp4', 
-                thumbUrl: 'https://i.postimg.cc/65TQdZg0/IMG_20251221_210524_420.jpg', 
-                title: 'Missionary Style-Sex'
-            }, 
-            {
-                videoUrl: 'https://files.catbox.moe/13wzwb.mp4', 
-                thumbUrl: 'https://i.postimg.cc/4Nn3zcqt/IMG_20251221_210432_601.jpg', 
-                title: 'foot-job'
-            }
+            { videoUrl: 'https://files.catbox.moe/ec5oqu.mp4', thumbUrl: 'https://i.postimg.cc/bNdvQnWg/IMG_20251221_210451_277.jpg', title: 'Título del Video Edit 1' },
+            { videoUrl: 'https://files.catbox.moe/knc138.mp4', thumbUrl: 'https://i.postimg.cc/KvV8QzhP/IMG_20251221_210541_021.jpg', title: 'Título del Video Edit 2' },
+            { videoUrl: 'https://files.catbox.moe/yblni8.mp4', thumbUrl: 'https://i.postimg.cc/KvV8QzhP/IMG_20251221_210541_021.jpg', title: 'Título del Video Edit 3' },
+            // ... puedes añadir más aquí
         ];
 
-        const botLink = "https://t.me/AIA_GENIUS_BOT";
+        // --- LÓGICA PARA ENVIAR DATOS AL BOT ---
+        function solicitarEdit(title) {
+            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                // Envía un mensaje al bot con el nombre del edit seleccionado
+                tg.sendData(JSON.stringify({
+                    action: "solicitar_edit",
+                    edit_name: title
+                }));
+                tg.close(); // Cierra la mini app después de enviar
+            } else {
+                alert("Debes abrir esta app desde dentro de Telegram.");
+            }
+        }
 
         // --- RENDER SLIDERS ---
         const sliderGrid = document.getElementById('slider-grid');
@@ -327,13 +234,15 @@
                 </div>
                 <div class="pt-4">
                     <h3 class="font-black text-sm uppercase italic mb-3 tracking-tight">${item.title}</h3>
-                    <div class="flex justify-between text-[10px] font-bold text-sky-300/50 uppercase">
+                    <div class="flex justify-between text-[10px] font-bold text-sky-300/50 uppercase mb-4">
                         <span>Original</span>
                         <span>Editado</span>
                     </div>
+                    <button onclick="solicitarEdit('${item.title}')" class="order-btn block w-full text-center py-3 rounded-xl font-extrabold text-[10px] uppercase tracking-widest">
+                        <i class="fa-brands fa-telegram mr-2"></i> Solicitar Edit
+                    </button>
                 </div>
             `;
-            
             const slider = card.querySelector('.comparison-slider');
             const beforeImg = card.querySelector('.img-before');
             const line = card.querySelector('.slider-line');
@@ -368,20 +277,19 @@
                 </div>
                 <div class="p-5">
                     <h3 class="font-black text-lg uppercase italic mb-4 leading-tight">${item.title}</h3>
-                    <a href="${botLink}" target="_blank" class="order-btn block text-center py-4 rounded-xl font-extrabold text-[10px] uppercase tracking-widest">
+                    <button onclick="solicitarEdit('${item.title}')" class="order-btn block w-full text-center py-4 rounded-xl font-extrabold text-[10px] uppercase tracking-widest">
                         <i class="fa-brands fa-telegram mr-2"></i> Solicitar Edit
-                    </a>
+                    </button>
                 </div>
             `;
-            
             const detector = card.querySelector('.hover-detector');
             const video = card.querySelector('video');
+            
             detector.addEventListener('mouseenter', () => video.play());
             detector.addEventListener('mouseleave', () => video.pause());
-
+            
             videoGrid.appendChild(card);
         });
     </script>
 </body>
 </html>
-
